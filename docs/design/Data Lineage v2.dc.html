@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/industry-957b0127-2442-4c73-822c-5e054ea5af36/styles.css">
+<script src="_ds/industry-957b0127-2442-4c73-822c-5e054ea5af36/_ds_bundle.js"></script>
+<style>body{margin:0;background:var(--color-bg)} a{color:var(--color-accent-700)} a:hover{color:var(--color-accent-900)}</style>
+</helmet>
+<div style="min-height:100vh; background:var(--color-bg); color:var(--color-text); font-family:var(--font-body); display:flex; flex-direction:column">
+
+  <header style="position:sticky; top:0; z-index:30; background:var(--color-bg); display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:24px; padding:12px 32px; border-bottom:1px solid var(--color-divider)">
+    <div style="display:flex; align-items:center; gap:10px">
+      <div style="width:22px; height:22px; border:1.5px solid var(--color-accent); display:grid; place-items:center"><div style="width:8px; height:8px; background:var(--color-accent)"></div></div>
+      <span style="font-family:var(--font-heading); font-weight:600; font-size:20px; letter-spacing:-0.01em">Lineage</span>
+      <span style="font-size:13px; color:var(--color-neutral-600)">/</span>
+      <span style="font-size:13px; color:var(--color-neutral-700)">Transaction Research</span>
+    </div>
+    <div style="position:relative; max-width:560px; width:100%; justify-self:center">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="position:absolute; left:12px; top:10px; color:var(--color-neutral-600)"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      <input class="input" value="{{ q }}" onChange="{{ onQuery }}" placeholder="Filter by field or column name — e.g. amount, MERCHANT_NM" style="padding-left:36px; min-height:36px">
+    </div>
+    <div style="display:flex; align-items:center; gap:8px; font-size:12px; color:var(--color-neutral-700)">
+      <span style="width:6px; height:6px; background:var(--color-accent)"></span>
+      <span>{{ attrCount }} attributes · {{ srcCount }} source columns</span>
+    </div>
+  </header>
+
+  <section style="display:flex; align-items:flex-end; justify-content:space-between; gap:16px 32px; flex-wrap:wrap; padding:28px 32px 18px">
+    <div style="display:flex; flex-direction:column; gap:6px; max-width:640px">
+      <span style="font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--color-accent-700)">Attribute lineage matrix</span>
+      <h1 style="margin:0; font-size:38px; line-height:1.05">Every screen field, traced to its Snowflake column</h1>
+      <p style="margin:0; font-size:14px; color:var(--color-neutral-700); text-wrap:pretty">Each row is one field in the UI. Read left to right through the BFF, Data API and GraphQL layers to the source. Select any cell to see what it feeds.</p>
+    </div>
+    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap">
+      <sc-if value="{{ isFiltered }}" hint-placeholder-val="{{ false }}">
+        <span style="font-size:13px; color:var(--color-neutral-700)">Showing {{ shownCount }} of {{ attrCount }}</span>
+        <button onClick="{{ clearFilters }}" class="btn btn-ghost" style="font-size:13px">Clear</button>
+      </sc-if>
+      <span style="font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--color-neutral-700)">Coverage {{ covPct }}%</span>
+      <div style="display:flex; border:1px solid var(--color-divider)">
+        <sc-for list="{{ covs }}" as="c" hint-placeholder-count="3">
+          <button onClick="{{ c.onClick }}" style="display:flex; align-items:center; gap:7px; padding:7px 12px; border:0; border-right:1px solid var(--color-divider); cursor:pointer; font-family:var(--font-body); font-size:13px; background:{{ c.bg }}; color:{{ c.fg }}">
+            <span style="width:7px; height:7px; background:{{ c.dot }}"></span>{{ c.label }}<span style="font-family:ui-monospace, Menlo, monospace; font-size:11px; opacity:.75">{{ c.n }}</span>
+          </button>
+        </sc-for>
+      </div>
+      <span style="font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--color-neutral-700)">Screen</span>
+      <div style="display:flex; border:1px solid var(--color-divider)">
+        <sc-for list="{{ screens }}" as="s" hint-placeholder-count="5">
+          <button onClick="{{ s.onClick }}" style="padding:7px 12px; border:0; border-right:1px solid var(--color-divider); cursor:pointer; font-family:var(--font-body); font-size:13px; background:{{ s.bg }}; color:{{ s.fg }}">{{ s.label }}</button>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <main style="display:flex; flex-wrap:wrap; gap:24px; padding:0 32px 48px; align-items:flex-start">
+    <div style="flex:999 1 720px; min-width:0">
+      <div style="min-width:0; display:flex; flex-direction:column">
+        <div style="position:sticky; top:61px; z-index:10; background:var(--color-bg); display:grid; grid-template-columns:minmax(0,1fr) 32px minmax(0,1fr) 32px minmax(0,1fr) 32px minmax(0,1fr) 32px minmax(0,1fr); border-top:1px solid var(--color-text); border-bottom:1px solid var(--color-divider)">
+          <sc-for list="{{ heads }}" as="h" hint-placeholder-count="9">
+            <div style="display:flex; flex-direction:column; gap:1px; padding:10px 12px; min-height:58px; box-shadow:inset 0 3px 0 {{ h.bar }}; background:{{ h.tint }}">
+              <span style="font-family:ui-monospace, Menlo, monospace; font-size:10.5px; color:{{ h.ink }}">{{ h.idx }}</span>
+              <span style="font-family:var(--font-heading); font-weight:600; font-size:16px; line-height:1.1">{{ h.label }}</span>
+              <span style="font-size:11px; color:var(--color-neutral-600)">{{ h.sys }}</span>
+            </div>
+          </sc-for>
+        </div>
+
+        <sc-for list="{{ rows }}" as="row" hint-placeholder-count="9">
+          <div onClick="{{ row.onSelect }}" style="display:grid; grid-template-columns:minmax(0,1fr) 32px minmax(0,1fr) 32px minmax(0,1fr) 32px minmax(0,1fr) 32px minmax(0,1fr); cursor:pointer; border-bottom:1px solid var(--color-divider); background:{{ row.bg }}; box-shadow:{{ row.ring }}; transition:background .12s" style-hover="background:color-mix(in srgb, var(--color-accent) 6%, transparent)">
+            <sc-for list="{{ row.items }}" as="it" hint-placeholder-count="9">
+              <sc-if value="{{ it.isCell }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex; flex-direction:column; justify-content:center; gap:6px; padding:12px; background:{{ it.tint }}">
+                  <sc-for list="{{ it.nodes }}" as="n" hint-placeholder-count="1">
+                    <div onClick="{{ n.onClick }}" style="display:flex; flex-direction:column; gap:1px; padding:5px 8px; border:1px solid {{ n.border }}; background:{{ n.bg }}; transition:border-color .12s" style-hover="border-color:var(--color-accent)">
+                      <div style="display:flex; align-items:center; gap:7px; min-width:0">
+                        <span style="width:7px; height:7px; flex:none; background:{{ n.dot }}"></span>
+                        <span style="font-family:{{ n.font }}; font-size:12.5px; font-weight:500; overflow-wrap:anywhere; color:var(--color-text)">{{ n.name }}</span>
+                      </div>
+                      <sc-if value="{{ showTypes }}" hint-placeholder-val="{{ true }}">
+                        <span style="font-family:ui-monospace, Menlo, monospace; font-size:10.5px; color:var(--color-neutral-700); overflow-wrap:anywhere; padding-left:14px">{{ n.type }}</span>
+                      </sc-if>
+                    </div>
+                  </sc-for>
+                  <sc-if value="{{ it.missing }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex; align-items:center; min-height:34px; padding:5px 8px; border:1px dashed oklch(0.6 0.12 75); font-size:11.5px; color:oklch(0.45 0.1 75)">{{ it.missLabel }}</div>
+                  </sc-if>
+                  <sc-if value="{{ it.issue }}" hint-placeholder-val="{{ false }}">
+                    <span style="align-self:flex-start; margin-left:8px; font-size:10px; letter-spacing:.08em; text-transform:uppercase; padding:2px 6px; color:{{ it.issueColor }}; background:{{ it.issueBg }}; border:1px solid {{ it.issueColor }}">{{ it.issueLabel }}</span>
+                  </sc-if>
+                </div>
+              </sc-if>
+              <sc-if value="{{ it.isConn }}" hint-placeholder-val="{{ false }}">
+                <div title="{{ it.title }}" style="position:relative; display:flex; align-items:center; justify-content:center">
+                  <div style="position:absolute; left:0; right:0; top:50%; height:0; border-top:1px {{ it.lineStyle }} {{ it.line }}"></div>
+                  <sc-if value="{{ showConnectors }}" hint-placeholder-val="{{ true }}">
+                    <sc-if value="{{ it.hasMark }}" hint-placeholder-val="{{ true }}">
+                      <div style="position:relative; width:18px; height:18px; display:grid; place-items:center; border:1px solid {{ it.line }}; background:var(--color-bg); font-family:ui-monospace, Menlo, monospace; font-size:10px; font-weight:600; color:{{ it.fg }}">{{ it.mark }}</div>
+                    </sc-if>
+                  </sc-if>
+                </div>
+              </sc-if>
+            </sc-for>
+          </div>
+        </sc-for>
+
+        <sc-if value="{{ noRows }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:20px 12px; font-size:13px; color:var(--color-neutral-700)">No lineage matches “{{ q }}”.</div>
+        </sc-if>
+
+        <div style="display:flex; gap:20px; flex-wrap:wrap; padding:14px 2px; font-size:12px; color:var(--color-neutral-700)">
+          <span style="display:flex; align-items:center; gap:6px"><span style="width:16px; height:16px; display:grid; place-items:center; border:1px solid var(--color-accent); font-family:ui-monospace, Menlo, monospace; font-size:10px; color:var(--color-accent-800)">ƒ</span>Transformed at this hop</span>
+          <span style="display:flex; align-items:center; gap:6px"><span style="width:16px; height:16px; display:grid; place-items:center; border:1px solid var(--color-divider); font-family:ui-monospace, Menlo, monospace; font-size:10px; color:var(--color-neutral-600)">=</span>Passed through unchanged</span>
+          <span style="display:flex; align-items:center; gap:6px"><span style="width:16px; height:16px; display:grid; place-items:center; border:1px solid oklch(0.55 0.15 25); font-family:ui-monospace, Menlo, monospace; font-size:10px; font-weight:600; color:oklch(0.55 0.15 25)">!</span>Broken mapping</span>
+          <span style="display:flex; align-items:center; gap:6px"><span style="width:16px; height:0; border-top:1px dashed oklch(0.6 0.12 75)"></span>No upstream source</span>
+        </div>
+      </div>
+    </div>
+
+    <aside class="blueprint" style="flex:1 1 340px; position:sticky; top:77px; max-height:calc(100vh - 100px); overflow-y:auto; display:flex; flex-direction:column">
+      <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+      <div style="display:flex; flex-direction:column; gap:6px; padding:18px 20px 16px; border-bottom:1px solid var(--color-divider)">
+        <span style="font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--color-accent-700)">{{ dCtx }}</span>
+        <span style="font-family:var(--font-heading); font-weight:600; font-size:28px; line-height:1.05">{{ dName }}</span>
+        <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:4px">
+          <span class="tag tag-outline" style="gap:4px">{{ dHops }} hops</span>
+          <span class="tag tag-accent" style="gap:4px">{{ dTransforms }} transforms</span>
+          <span class="tag tag-outline" style="gap:4px">{{ dSources }} source columns</span>
+        </div>
+      </div>
+
+      <sc-if value="{{ hasIssues }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex; flex-direction:column; gap:10px; padding:14px 20px; border-bottom:1px solid var(--color-divider)">
+          <sc-for list="{{ issues }}" as="is" hint-placeholder-count="1">
+            <div style="display:flex; flex-direction:column; gap:4px; padding:10px 12px; background:{{ is.bg }}; border:1px solid {{ is.color }}">
+              <span style="font-size:11px; letter-spacing:.08em; text-transform:uppercase; font-weight:600; color:{{ is.color }}">{{ is.title }}</span>
+              <span style="font-family:ui-monospace, Menlo, monospace; font-size:12px; overflow-wrap:anywhere">{{ is.where }}</span>
+              <span style="font-size:12.5px; line-height:1.45; color:var(--color-text); text-wrap:pretty">{{ is.detail }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{ hasImpact }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex; flex-direction:column; gap:8px; padding:14px 20px; border-bottom:1px solid var(--color-divider); background:var(--color-accent-100)">
+          <div style="display:flex; justify-content:space-between; align-items:baseline; gap:8px">
+            <span style="font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--color-accent-800)">Impact of {{ nodeLayer }}</span>
+            <button onClick="{{ clearNode }}" class="btn btn-ghost" style="font-size:12px; padding:2px 4px">Clear</button>
+          </div>
+          <span style="font-family:ui-monospace, Menlo, monospace; font-size:13px; font-weight:500; overflow-wrap:anywhere">{{ nodeName }}</span>
+          <span style="font-size:12px; color:var(--color-accent-900)">Feeds {{ impactCount }} UI field(s):</span>
+          <div style="display:flex; gap:6px; flex-wrap:wrap">
+            <sc-for list="{{ impact }}" as="im" hint-placeholder-count="2">
+              <button onClick="{{ im.onClick }}" class="btn btn-secondary" style="font-size:12px; padding:3px 8px; background:var(--color-bg)">{{ im.name }}</button>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <div style="display:flex; flex-direction:column; padding:8px 20px 20px">
+        <sc-for list="{{ steps }}" as="st" hint-placeholder-count="5">
+          <div style="display:grid; grid-template-columns:14px minmax(0,1fr); gap:12px">
+            <div style="display:flex; flex-direction:column; align-items:center">
+              <div style="width:10px; height:10px; margin-top:17px; background:{{ st.dot }}"></div>
+              <div style="flex:1; width:1px; background:{{ st.rail }}"></div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:6px; padding:12px 0 10px">
+              <div style="display:flex; align-items:baseline; gap:8px">
+                <span style="font-family:ui-monospace, Menlo, monospace; font-size:10.5px; color:{{ st.ink }}">{{ st.idx }}</span>
+                <span style="font-family:var(--font-heading); font-weight:600; font-size:15px">{{ st.label }}</span>
+              </div>
+              <sc-for list="{{ st.nodes }}" as="n" hint-placeholder-count="1">
+                <div style="display:flex; flex-direction:column; gap:1px">
+                  <span style="font-family:{{ n.font }}; font-size:13px; font-weight:500; overflow-wrap:anywhere">{{ n.name }}</span>
+                  <span style="font-size:11.5px; color:var(--color-neutral-700); overflow-wrap:anywhere">{{ n.type }} · {{ n.ctx }}</span>
+                </div>
+              </sc-for>
+              <sc-for list="{{ st.maps }}" as="m" hint-placeholder-count="1">
+                <div style="display:flex; flex-direction:column; gap:3px; margin-top:4px">
+                  <span style="font-size:11px; color:var(--color-neutral-600)">{{ m.label }}</span>
+                  <code style="font-family:ui-monospace, Menlo, monospace; font-size:11.5px; line-height:1.45; padding:5px 8px; background:var(--color-surface); color:{{ m.color }}; overflow-wrap:anywhere">{{ m.logic }}</code>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </aside>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;layerColors&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;showTypes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;showConnectors&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;showImpact&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+const LAYERS = [
+  { id: 'ui', label: 'UI field', sys: 'Transaction Research UI' },
+  { id: 'bff', label: 'BFF API', sys: 'txn-research-bff · REST' },
+  { id: 'data', label: 'Data API', sys: 'txn-data-service' },
+  { id: 'gql', label: 'GraphQL', sys: 'Snowflake GraphQL gateway' },
+  { id: 'sf', label: 'Snowflake', sys: 'TXN_DB' }
+];
+const N = [
+  ['u1','ui','Transaction ID','Grid column · mono text','TxnSearch › ResultsGrid'],
+  ['u2','ui','Amount','Grid column · currency','TxnSearch › ResultsGrid'],
+  ['u10','ui','Selected total','Summary bar · currency','TxnSearch › SelectionBar'],
+  ['u3','ui','Status','Badge','TxnSearch › ResultsGrid'],
+  ['u4','ui','Posted','Grid column · date','TxnSearch › ResultsGrid'],
+  ['u5','ui','Merchant','Grid column · text','TxnSearch › ResultsGrid'],
+  ['u6','ui','Category filter','Multi-select chips','TxnSearch › FilterBar'],
+  ['u7','ui','Risk','Pill · LOW / MED / HIGH','TxnDetail › RiskPanel'],
+  ['u8','ui','Card','Grid column · masked','TxnSearch › ResultsGrid'],
+  ['u12','ui','Settled','Grid column · date','TxnSearch › ResultsGrid'],
+  ['u11','ui','Dispute reason','Text','TxnDetail › DisputePanel'],
+  ['b10','bff','settledDate','string | null','GET /api/v1/transactions/search'],
+  ['b9','bff','disputeReason','string','GET /api/v1/transactions/{id}'],
+  ['d10','data','settledAt','Instant','TransactionRecord'],
+  ['d9','data','disputeReasonCode','String','TransactionRecord'],
+  ['g10','gql','Transaction.settledAt','DateTime','type Transaction'],
+  ['g9','gql','Transaction.disputeReason','String','type Transaction'],
+  ['s12','sf','SETTLE_DT','DATE','CORE.FACT_TRANSACTION'],
+  ['b1','bff','txnId','string','GET /api/v1/transactions/search'],
+  ['b2','bff','amount.display','string','GET /api/v1/transactions/search'],
+  ['b2v','bff','amount.value','number','GET /api/v1/transactions/search'],
+  ['b3','bff','statusLabel','string','GET /api/v1/transactions/search'],
+  ['b4','bff','postedDate','string (YYYY-MM-DD)','GET /api/v1/transactions/search'],
+  ['b5','bff','merchantName','string','GET /api/v1/transactions/search'],
+  ['b6','bff','category','string','GET /api/v1/transactions/search'],
+  ['b7','bff','riskBand',"'LOW' | 'MED' | 'HIGH'",'GET /api/v1/transactions/{id}'],
+  ['b8','bff','cardMasked','string','GET /api/v1/transactions/search'],
+  ['d1','data','transactionId','String','TransactionRecord'],
+  ['d2','data','amount','BigDecimal','TransactionRecord'],
+  ['d2b','data','currency','String','TransactionRecord'],
+  ['d3','data','status','TxnStatus (enum)','TransactionRecord'],
+  ['d4','data','postedAt','Instant','TransactionRecord'],
+  ['d5','data','merchantName','String','TransactionRecord'],
+  ['d6','data','merchantCategory','String','TransactionRecord'],
+  ['d7','data','riskScore','Double','TransactionRecord'],
+  ['d8','data','cardLast4','String','TransactionRecord'],
+  ['g1','gql','Transaction.id','ID!','type Transaction'],
+  ['g2v','gql','Money.value','Float!','type Money'],
+  ['g2c','gql','Money.currency','String!','type Money'],
+  ['g3','gql','Transaction.status','TransactionStatus!','type Transaction'],
+  ['g4','gql','Transaction.postedAt','DateTime!','type Transaction'],
+  ['g5','gql','Merchant.name','String','type Merchant'],
+  ['g6','gql','Merchant.category','String','type Merchant'],
+  ['g7','gql','Transaction.riskScore','Float','type Transaction'],
+  ['g8','gql','Transaction.cardLast4','String','type Transaction'],
+  ['s1','sf','TXN_ID','VARCHAR(36)','CORE.FACT_TRANSACTION'],
+  ['s2','sf','TXN_AMT_MINOR','NUMBER(18,0)','CORE.FACT_TRANSACTION'],
+  ['s3','sf','CCY_CD','CHAR(3)','CORE.FACT_TRANSACTION'],
+  ['s3b','sf','MINOR_UNITS','NUMBER(1,0)','REF.CURRENCY'],
+  ['s4','sf','TXN_STATUS_CD','VARCHAR(2)','CORE.FACT_TRANSACTION'],
+  ['s5','sf','POSTED_TS','TIMESTAMP_NTZ','CORE.FACT_TRANSACTION'],
+  ['s6','sf','MERCHANT_ID','VARCHAR(20)','CORE.FACT_TRANSACTION'],
+  ['s7','sf','MERCHANT_NM','VARCHAR(140)','CORE.DIM_MERCHANT'],
+  ['s8','sf','MCC_CD','CHAR(4)','CORE.DIM_MERCHANT'],
+  ['s8b','sf','MCC_DESC','VARCHAR(80)','REF.MCC_CODE'],
+  ['s9','sf','RISK_SCORE','NUMBER(5,2)','RISK.TXN_RISK_SCORE'],
+  ['s10','sf','CARD_PAN_LAST4','CHAR(4)','CORE.FACT_TRANSACTION']
+].map(([id, layer, name, type, ctx]) => ({ id, layer, name, type, ctx }));
+const E = [
+  ['s1','g1','Direct · resolver Transaction.id'],
+  ['s2','g2v','TXN_AMT_MINOR / POWER(10, MINOR_UNITS)'],
+  ['s3b','g2v','JOIN REF.CURRENCY USING (CCY_CD) → scale factor'],
+  ['s3','g2c','Direct'],
+  ['s4','g3','DECODE: PS→POSTED · PD→PENDING · RV→REVERSED · DC→DECLINED'],
+  ['s5','g4',"CONVERT_TIMEZONE('UTC', POSTED_TS) → ISO-8601"],
+  ['s6','g5','JOIN CORE.DIM_MERCHANT USING (MERCHANT_ID)'],
+  ['s7','g5','Direct · NULL passthrough'],
+  ['s8','g6','JOIN REF.MCC_CODE USING (MCC_CD)'],
+  ['s8b','g6','INITCAP(MCC_DESC)'],
+  ['s9','g7','Latest per TXN_ID · QUALIFY ROW_NUMBER() OVER (PARTITION BY TXN_ID ORDER BY SCORED_AT DESC) = 1'],
+  ['s10','g8','Direct'],
+  ['g1','d1','Direct'],
+  ['g2v','d2','BigDecimal.valueOf(v).setScale(2, HALF_EVEN)'],
+  ['g2c','d2b','Direct'],
+  ['g3','d3','TxnStatus.valueOf(name)'],
+  ['g4','d4','Instant.parse(postedAt)'],
+  ['g5','d5',"null → 'Unknown merchant'"],
+  ['g6','d6','Direct'],
+  ['g7','d7','Direct · null → 0.0'],
+  ['g8','d8','Direct'],
+  ['d1','b1','Direct'],
+  ['d2','b2',"Intl.NumberFormat('en-US', { style: 'currency', currency })"],
+  ['d2b','b2','Supplies currency code to formatter'],
+  ['d2','b2v','amount.toNumber()'],
+  ['d3','b3','Title-case · POSTED → Posted'],
+  ['d4','b4','Convert to user TZ · format YYYY-MM-DD'],
+  ['d5','b5','Trim · truncate at 40 chars'],
+  ['d6','b6','Direct'],
+  ['d7','b7','≥ 70 → HIGH · ≥ 40 → MED · else LOW'],
+  ['d8','b8',"'•••• ' + cardLast4"],
+  ['b1','u1','Render mono · copy-to-clipboard'],
+  ['b2','u2','Right-aligned · tabular figures'],
+  ['b2v','u10','Σ of selected rows (client-side)'],
+  ['b3','u3','Badge tone by status'],
+  ['b4','u4','Relative label if < 7 days'],
+  ['b5','u5','Direct'],
+  ['b6','u6','Distinct values → filter options'],
+  ['b7','u7','Pill tone by band'],
+  ['b8','u8','Direct'],
+  ['s12','g10','Direct · SELECT SETTLE_DT', 'Column renamed to SETTLEMENT_DT on 2026-09-14 — resolver still selects SETTLE_DT and returns null'],
+  ['g10','d10','Instant.parse(settledAt)'],
+  ['d10','b10',"Format YYYY-MM-DD · null → '—'"],
+  ['b10','u12','Direct'],
+  ['g9','d9','Direct'],
+  ['d9','b9','Code → label via reason-codes.json'],
+  ['b9','u11','Direct']
+].map(([from, to, logic, broken]) => ({ id: from + '>' + to, from, to, logic, broken }));
+const GAPS = { g9: 'Resolver stub returns null — no Snowflake column is mapped to Transaction.disputeReason' };
+const BAD = 'oklch(0.55 0.15 25)', BAD_TINT = 'oklch(0.96 0.025 25)', MISS = 'oklch(0.6 0.12 75)', MISS_INK = 'oklch(0.45 0.1 75)', MISS_TINT = 'oklch(0.965 0.03 85)';
+const NB = Object.fromEntries(N.map(n => [n.id, n]));
+const LB = Object.fromEntries(LAYERS.map((l, i) => [l.id, { ...l, i }]));
+const MONO = "ui-monospace, 'SF Mono', Menlo, Consolas, monospace";
+const HUE = { ui: 275, bff: 190, data: 140, gql: 335, sf: 225 };
+const pal = (layer, on) => on ? {
+  c: `oklch(0.6 0.11 ${HUE[layer]})`, ink: `oklch(0.42 0.09 ${HUE[layer]})`, tint: `oklch(0.965 0.018 ${HUE[layer]})`, rail: `oklch(0.85 0.05 ${HUE[layer]})`
+} : { c: 'var(--color-accent)', ink: 'var(--color-accent-700)', tint: 'transparent', rail: 'var(--color-accent-300)' };
+const isDirect = e => /^Direct/.test(e.logic);
+const SCREENS = ['All', 'ResultsGrid', 'FilterBar', 'SelectionBar', 'RiskPanel', 'DisputePanel'];
+
+class Component extends DCLogic {
+  state = { q: '', row: 'u2', node: null, screen: 'All', cov: 'all' };
+
+  analyze(uid) {
+    const ids = new Set([uid, ...this.walk(uid, 'up')]);
+    const deepest = Math.max(...[...ids].map(id => LB[NB[id].layer].i));
+    const edges = E.filter(e => ids.has(e.from) && ids.has(e.to));
+    const broken = edges.filter(e => e.broken);
+    const missing = deepest < 4;
+    const endNode = missing ? [...ids].find(id => LB[NB[id].layer].i === deepest) : null;
+    return { ids, deepest, edges, broken, missing, endNode, status: broken.length ? 'broken' : missing ? 'missing' : 'ok' };
+  }
+
+  walk(start, dir) {
+    const seen = new Set(), stack = [start];
+    while (stack.length) {
+      const id = stack.shift();
+      for (const e of E) {
+        if ((dir === 'up' ? e.to : e.from) !== id) continue;
+        const next = dir === 'up' ? e.from : e.to;
+        if (!seen.has(next)) { seen.add(next); stack.push(next); }
+      }
+    }
+    return seen;
+  }
+
+  renderVals() {
+    const showTypes = this.props.showTypes ?? true;
+    const showConnectors = this.props.showConnectors ?? true;
+    const { q, row, node, screen } = this.state;
+    const lc = this.props.layerColors ?? true;
+    const qq = q.trim().toLowerCase();
+    const matches = n => qq && n.name.toLowerCase().replace(/[_.]/g, ' ').includes(qq.replace(/[_.]/g, ' '));
+    const nodeUi = node ? this.walk(node, 'down') : null;
+
+    const nodeView = (n, rowId) => {
+      const isNode = node === n.id, hit = matches(n);
+      return {
+        ...n, key: n.id,
+        font: n.layer === 'ui' ? 'var(--font-body)' : MONO,
+        dot: pal(n.layer, lc).c,
+        border: isNode ? 'var(--color-accent)' : hit ? 'var(--color-accent-400)' : 'transparent',
+        bg: isNode ? 'var(--color-accent-200)' : hit ? 'var(--color-accent-100)' : 'transparent',
+        onClick: ev => { ev.stopPropagation(); this.setState({ node: n.layer === 'ui' ? null : n.id, row: rowId }); }
+      };
+    };
+
+    const uis = N.filter(n => n.layer === 'ui');
+    const analyses = Object.fromEntries(uis.map(u => [u.id, this.analyze(u.id)]));
+    const rows = uis.map(u => {
+      const A = analyses[u.id], ids = A.ids;
+      const items = [];
+      const rsel = row === u.id;
+      LAYERS.forEach((l, i) => {
+        const miss = i > A.deepest;
+        items.push({
+          key: l.id, isCell: true, isConn: false,
+          tint: rsel ? 'transparent' : miss ? MISS_TINT : pal(l.id, lc).tint,
+          missing: miss, missLabel: i === A.deepest + 1 ? 'No source mapped' : '',
+          issue: i === 0 && A.status !== 'ok', issueLabel: A.status === 'broken' ? 'Broken mapping' : 'No source',
+          issueColor: A.status === 'broken' ? BAD : MISS_INK, issueBg: A.status === 'broken' ? BAD_TINT : MISS_TINT,
+          nodes: N.filter(n => n.layer === l.id && ids.has(n.id)).map(n => nodeView(n, u.id))
+        });
+        if (i < 4) {
+          const es = A.edges.filter(e => NB[e.to].layer === l.id);
+          const tx = es.filter(e => !isDirect(e)).length, br = es.some(e => e.broken), gap = i >= A.deepest;
+          items.push({
+            key: l.id + '-c', isCell: false, isConn: true,
+            hasMark: !gap, mark: br ? '!' : tx ? 'ƒ' : '=',
+            line: br ? BAD : gap ? MISS : tx ? 'var(--color-accent)' : 'var(--color-divider)',
+            lineStyle: gap ? 'dashed' : 'solid',
+            fg: br ? BAD : tx ? 'var(--color-accent-800)' : 'var(--color-neutral-600)',
+            title: gap ? 'No upstream mapping' : es.map(e => e.broken ? 'BROKEN: ' + e.broken : e.logic).join('\n')
+          });
+        }
+      });
+      const sel = row === u.id, inImpact = nodeUi && nodeUi.has(u.id);
+      return {
+        key: u.id, items,
+        bg: sel ? 'var(--color-accent-100)' : inImpact ? 'color-mix(in srgb, var(--color-accent) 5%, transparent)' : 'transparent',
+        ring: sel ? 'inset 0 0 0 1px var(--color-accent)' : 'none',
+        show: (screen === 'All' || u.ctx.endsWith(screen)) && (this.state.cov === 'all' || (this.state.cov === 'ok') === (A.status === 'ok')) && (!qq || [...ids].some(id => matches(NB[id]))),
+        onSelect: () => this.setState({ row: u.id, node: null })
+      };
+    }).filter(r => r.show);
+
+    const ru = NB[row];
+    const RA = analyses[row];
+    const rids = RA.ids;
+    const redges = RA.edges;
+    const issues = [
+      ...RA.broken.map(e => ({ key: e.id, title: 'Broken mapping', where: NB[e.to].name + '  ←  ' + NB[e.from].name, detail: e.broken, color: BAD, bg: BAD_TINT })),
+      ...(RA.missing ? [{ key: 'miss', title: 'No Snowflake source', where: 'Chain ends at ' + LB[NB[RA.endNode].layer].label + ' · ' + NB[RA.endNode].name, detail: GAPS[RA.endNode] || 'No upstream mapping found', color: MISS_INK, bg: MISS_TINT }] : [])
+    ];
+    const steps = LAYERS.filter((l, i) => i <= RA.deepest).map((l, i) => {
+      const maps = i < 4 ? redges.filter(e => NB[e.to].layer === l.id).map(e => ({ key: e.id, label: NB[e.to].name + '  ←  ' + NB[e.from].name, logic: e.broken ? e.logic + '  ✕  ' + e.broken : e.logic, color: e.broken ? BAD : isDirect(e) ? 'var(--color-neutral-700)' : 'var(--color-accent-800)' })) : [];
+      return {
+        key: l.id, idx: '0' + (i + 1), label: l.label,
+        dot: pal(l.id, lc).c, ink: pal(l.id, lc).ink,
+        rail: i === RA.deepest ? 'transparent' : pal(l.id, lc).rail,
+        nodes: N.filter(n => n.layer === l.id && rids.has(n.id)).map(n => ({ key: n.id, name: n.name, type: n.type, ctx: n.ctx, font: n.layer === 'ui' ? 'var(--font-body)' : MONO })),
+        maps
+      };
+    });
+
+    const tab = on => ({ bg: on ? 'var(--color-accent)' : 'transparent', fg: on ? 'var(--color-bg)' : 'var(--color-text)' });
+    const impact = nodeUi ? uis.filter(u => nodeUi.has(u.id)).map(u => ({ key: u.id, name: u.name, onClick: () => this.setState({ row: u.id }) })) : [];
+    return {
+      q, showTypes, showConnectors, rows, steps, noRows: !rows.length,
+      isFiltered: !!qq || screen !== 'All' || this.state.cov !== 'all', shownCount: rows.length,
+      clearFilters: () => this.setState({ q: '', screen: 'All', cov: 'all' }),
+      issues, hasIssues: issues.length > 0,
+      covs: (() => {
+        const all = Object.values(analyses), ok = all.filter(a => a.status === 'ok').length;
+        return [['all', 'All', all.length], ['ok', 'Fully traced', ok], ['issues', 'Issues', all.length - ok]].map(([k, label, n]) => ({ key: k, label, n, ...tab(this.state.cov === k), dot: k === 'issues' ? BAD : k === 'ok' ? 'var(--color-accent)' : 'transparent', onClick: () => this.setState({ cov: k }) }));
+      })(),
+      covPct: Math.round(100 * Object.values(analyses).filter(a => a.status === 'ok').length / uis.length),
+      attrCount: uis.length, srcCount: N.filter(n => n.layer === 'sf').length,
+      heads: LAYERS.flatMap((l, i) => { const p = pal(l.id, lc); const h = [{ key: l.id, idx: '0' + (i + 1), label: l.label, sys: l.sys, bar: lc ? p.c : 'transparent', ink: p.ink, tint: p.tint }]; if (i < 4) h.push({ key: l.id + '-c', idx: '', label: '', sys: '', bar: 'transparent', ink: 'transparent', tint: 'transparent' }); return h; }),
+      screens: SCREENS.map(s => ({ key: s, label: s, ...tab(screen === s), onClick: () => this.setState({ screen: s }) })),
+      dName: ru.name, dCtx: ru.ctx,
+      dHops: redges.length, dTransforms: redges.filter(e => !isDirect(e)).length, dSources: [...rids].filter(id => NB[id].layer === 'sf').length,
+      hasImpact: (this.props.showImpact ?? true) && !!node,
+      nodeName: node ? NB[node].name : '', nodeLayer: node ? LB[NB[node].layer].label + ' field' : '',
+      impact, impactCount: impact.length,
+      clearNode: () => this.setState({ node: null }),
+      onQuery: e => this.setState({ q: e.target.value })
+    };
+  }
+}
+</script>
+</body>
+</html>
