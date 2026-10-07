@@ -17,14 +17,31 @@ export interface Analysis {
 }
 
 export const edgeKey = (e: Edge) => `${e.from}>${e.to}`;
-export const isDirect = (e: Edge) => /^Direct/.test(e.logic);
+
+/** True when every transformation is DIRECT/IDENTITY: the value passes through unchanged. */
+export const isIdentity = (e: Edge) =>
+  e.transformations.length > 0 && e.transformations.every((t) => t.type === 'DIRECT' && t.subtype === 'IDENTITY');
+
+export const isMasking = (e: Edge) => e.transformations.some((t) => t.masking);
+
+/** `DIRECT · IDENTITY`, `INDIRECT · JOIN`, … */
+export const transformationKinds = (e: Edge) =>
+  e.transformations.length ? e.transformations.map((t) => [t.type, t.subtype].filter(Boolean).join(' · ')).join(', ') : 'Not reported';
+
+export const hasDescription = (e: Edge) => e.transformations.some((t) => t.description);
+
+/** Human-readable logic for an edge: the producers' descriptions, else the transformation kinds. */
+export function describeEdge(e: Edge): string {
+  const text = e.transformations.map((t) => t.description).filter(Boolean).join(' · ');
+  return text || transformationKinds(e);
+}
 
 /** Indexed, read-only view of the lineage graph with traversal helpers. */
 export class LineageGraph {
   readonly layers: Layer[];
   readonly nodes: LineageNode[];
   readonly edges: Edge[];
-  readonly gaps: Record<string, string>;
+  readonly notes: Record<string, string>;
   private readonly byId: Map<string, LineageNode>;
   private readonly layerIndex: Map<LayerId, number>;
   private readonly upstream = new Map<string, Edge[]>();
@@ -34,7 +51,7 @@ export class LineageGraph {
     this.layers = data.layers;
     this.nodes = data.nodes;
     this.edges = data.edges;
-    this.gaps = data.gaps;
+    this.notes = data.notes;
     this.byId = new Map(data.nodes.map((n) => [n.id, n]));
     this.layerIndex = new Map(data.layers.map((l, i) => [l.id, i]));
     for (const e of data.edges) {

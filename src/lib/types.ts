@@ -1,36 +1,46 @@
+import type { Transformation } from './openlineage';
+
 export type LayerId = 'ui' | 'bff' | 'data' | 'gql' | 'sf';
 
-/** Ordered UI → Snowflake. */
+/** One tier of the stack, identified in OpenLineage by its dataset namespace. Ordered UI → Snowflake. */
 export interface Layer {
   id: LayerId;
   label: string;
   sys: string;
+  /** OpenLineage dataset namespace of this layer's datasets. */
+  namespace: string;
+  /** Display name for a field; defaults to the field name. */
+  nodeName?: (dataset: string, field: string) => string;
+  /** Where the field lives, shown under its name; defaults to the dataset name. */
+  ctx?: (dataset: string) => string;
 }
 
+/** A field of an OpenLineage dataset. */
 export interface LineageNode {
   id: string;
   layer: LayerId;
+  namespace: string;
+  dataset: string;
+  field: string;
   name: string;
   type: string;
-  /** Where it lives: UI `Screen › Component`, BFF endpoint, DTO class, GraphQL type, `SCHEMA.TABLE`. */
   ctx: string;
 }
 
-/** Edges point upstream → downstream (from = source side, to = consumer side). */
+/** One `inputFields` entry of a columnLineage facet. Points upstream → downstream. */
 export interface Edge {
   from: string;
   to: string;
-  logic: string;
-  /** Present when the mapping exists but is invalid; the text is the reason. */
+  transformations: Transformation[];
+  /** Set when the input field is missing from its dataset's schema; the text is the reason. */
   broken?: string;
 }
 
-/** nodeId → reason the chain ends there. */
-export type Gaps = Record<string, string>;
-
+/** The graph the page renders, built from OpenLineage events by `fromOpenLineage`. */
 export interface LineageData {
   layers: Layer[];
   nodes: LineageNode[];
   edges: Edge[];
-  gaps: Gaps;
+  /** nodeId → note from the `datalineage_notes` facet. */
+  notes: Record<string, string>;
 }

@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/srsubramanian/DataLineage/main/schemas/LineageNotesDatasetFacet.json",
+  "$defs": {
+    "LineageNotesDatasetFacet": {
+      "description": "Custom OpenLineage dataset facet (key `datalineage_notes`): human-written notes per field, shown when that field's lineage is broken or stops short of a source.",
+      "allOf": [
+        { "$ref": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/$defs/DatasetFacet" },
+        {
+          "type": "object",
+          "properties": {
+            "fields": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "note": { "type": "string", "description": "Why the field's lineage is broken or ends here." }
+                },
+                "required": ["note"],
+                "additionalProperties": true
+              }
+            }
+          },
+          "required": ["fields"],
+          "additionalProperties": true
+        }
+      ],
+      "type": "object"
+    }
+  },
+  "type": "object",
+  "properties": {
+    "datalineage_notes": { "$ref": "#/$defs/LineageNotesDatasetFacet" }
+  }
+}

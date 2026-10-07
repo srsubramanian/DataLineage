@@ -1,0 +1,1921 @@
+[
+  {
+    "eventType": "COMPLETE",
+    "eventTime": "2026-10-06T00:00:00.000Z",
+    "producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+    "schemaURL": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/$defs/RunEvent",
+    "run": {
+      "runId": "9718c554-dc12-59ec-8041-1204667aa3ef"
+    },
+    "job": {
+      "namespace": "txn-research-ui",
+      "name": "TxnSearch.ResultsGrid"
+    },
+    "inputs": [
+      {
+        "namespace": "https://txn-research-bff",
+        "name": "GET /api/v1/transactions/search",
+        "facets": {
+          "schema": {
+            "_producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-2-0/SchemaDatasetFacet.json#/$defs/SchemaDatasetFacet",
+            "fields": [
+              {
+                "name": "settledDate",
+                "type": "string | null"
+              },
+              {
+                "name": "txnId",
+                "type": "string"
+              },
+              {
+                "name": "amount.display",
+                "type": "string"
+              },
+              {
+                "name": "amount.value",
+                "type": "number"
+              },
+              {
+                "name": "statusLabel",
+                "type": "string"
+              },
+              {
+                "name": "postedDate",
+                "type": "string (YYYY-MM-DD)"
+              },
+              {
+                "name": "merchantName",
+                "type": "string"
+              },
+              {
+                "name": "category",
+                "type": "string"
+              },
+              {
+                "name": "cardMasked",
+                "type": "string"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "outputs": [
+      {
+        "namespace": "ui://txn-research-ui",
+        "name": "TxnSearch.ResultsGrid",
+        "facets": {
+          "schema": {
+            "_producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-2-0/SchemaDatasetFacet.json#/$defs/SchemaDatasetFacet",
+            "fields": [
+              {
+                "name": "Transaction ID",
+                "type": "Grid column · mono text"
+              },
+              {
+                "name": "Amount",
+                "type": "Grid column · currency"
+              },
+              {
+                "name": "Status",
+                "type": "Badge"
+              },
+              {
+                "name": "Posted",
+                "type": "Grid column · date"
+              },
+              {
+                "name": "Merchant",
+                "type": "Grid column · text"
+              },
+              {
+                "name": "Card",
+                "type": "Grid column · masked"
+              },
+              {
+                "name": "Settled",
+                "type": "Grid column · date"
+              }
+            ]
+          },
+          "columnLineage": {
+            "_producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-2-0/ColumnLineageDatasetFacet.json#/$defs/ColumnLineageDatasetFacet",
+            "fields": {
+              "Transaction ID": {
+                "inputFields": [
+                  {
+                    "namespace": "https://txn-research-bff",
+                    "name": "GET /api/v1/transactions/search",
+                    "field": "txnId",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "TRANSFORMATION",
+                        "description": "Render mono · copy-to-clipboard",
+                        "masking": false
+                      }
+                    ]
+                  }
+                ]
+              },
+              "Amount": {
+                "inputFields": [
+                  {
+                    "namespace": "https://txn-research-bff",
+                    "name": "GET /api/v1/transactions/search",
+                    "field": "amount.display",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "TRANSFORMATION",
+                        "description": "Right-aligned · tabular figures",
+                        "masking": false
+                      }
+                    ]
+                  }
+                ]
+              },
+              "Status": {
+                "inputFields": [
+                  {
+                    "namespace": "https://txn-research-bff",
+                    "name": "GET /api/v1/transactions/search",
+                    "field": "statusLabel",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "TRANSFORMATION",
+                        "description": "Badge tone by status",
+                        "masking": false
+                      }
+                    ]
+                  }
+                ]
+              },
+              "Posted": {
+                "inputFields": [
+                  {
+                    "namespace": "https://txn-research-bff",
+                    "name": "GET /api/v1/transactions/search",
+                    "field": "postedDate",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "TRANSFORMATION",
+                        "description": "Relative label if < 7 days",
+                        "masking": false
+                      }
+                    ]
+                  }
+                ]
+              },
+              "Merchant": {
+                "inputFields": [
+                  {
+                    "namespace": "https://txn-research-bff",
+                    "name": "GET /api/v1/transactions/search",
+                    "field": "merchantName",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "IDENTITY",
+                        "masking": false
+                      }
+                    ]
+                  }
+                ]
+              },
+              "Card": {
+                "inputFields": [
+                  {
+                    "namespace": "https://txn-research-bff",
+                    "name": "GET /api/v1/transactions/search",
+                    "field": "cardMasked",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "IDENTITY",
+                        "masking": false
+                      }
+                    ]
+                  }
+                ]
+              },
+              "Settled": {
+                "inputFields": [
+                  {
+                    "namespace": "https://txn-research-bff",
+                    "name": "GET /api/v1/transactions/search",
+                    "field": "settledDate",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "IDENTITY",
+                        "masking": false
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "eventType": "COMPLETE",
+    "eventTime": "2026-10-06T00:00:00.000Z",
+    "producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+    "schemaURL": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/$defs/RunEvent",
+    "run": {
+      "runId": "ce839ae4-560f-5ec6-85a9-1bc4e6da4c68"
+    },
+    "job": {
+      "namespace": "txn-research-ui",
+      "name": "TxnSearch.SelectionBar"
+    },
+    "inputs": [
+      {
+        "namespace": "https://txn-research-bff",
+        "name": "GET /api/v1/transactions/search",
+        "facets": {
+          "schema": {
+            "_producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-2-0/SchemaDatasetFacet.json#/$defs/SchemaDatasetFacet",
+            "fields": [
+              {
+                "name": "settledDate",
+                "type": "string | null"
+              },
+              {
+                "name": "txnId",
+                "type": "string"
+              },
+              {
+                "name": "amount.display",
+                "type": "string"
+              },
+              {
+                "name": "amount.value",
+                "type": "number"
+              },
+              {
+                "name": "statusLabel",
+                "type": "string"
+              },
+              {
+                "name": "postedDate",
+                "type": "string (YYYY-MM-DD)"
+              },
+              {
+                "name": "merchantName",
+                "type": "string"
+              },
+              {
+                "name": "category",
+                "type": "string"
+              },
+              {
+                "name": "cardMasked",
+                "type": "string"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "outputs": [
+      {
+        "namespace": "ui://txn-research-ui",
+        "name": "TxnSearch.SelectionBar",
+        "facets": {
+          "schema": {
+            "_producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-2-0/SchemaDatasetFacet.json#/$defs/SchemaDatasetFacet",
+            "fields": [
+              {
+                "name": "Selected total",
+                "type": "Summary bar · currency"
+              }
+            ]
+          },
+          "columnLineage": {
+            "_producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-2-0/ColumnLineageDatasetFacet.json#/$defs/ColumnLineageDatasetFacet",
+            "fields": {
+              "Selected total": {
+                "inputFields": [
+                  {
+                    "namespace": "https://txn-research-bff",
+                    "name": "GET /api/v1/transactions/search",
+                    "field": "amount.value",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "AGGREGATION",
+                        "description": "Σ of selected rows (client-side)",
+                        "masking": false
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "eventType": "COMPLETE",
+    "eventTime": "2026-10-06T00:00:00.000Z",
+    "producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+    "schemaURL": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/$defs/RunEvent",
+    "run": {
+      "runId": "89ba0de2-0024-5149-8384-63129ab48690"
+    },
+    "job": {
+      "namespace": "txn-research-ui",
+      "name": "TxnSearch.FilterBar"
+    },
+    "inputs": [
+      {
+        "namespace": "https://txn-research-bff",
+        "name": "GET /api/v1/transactions/search",
+        "facets": {
+          "schema": {
+            "_producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-2-0/SchemaDatasetFacet.json#/$defs/SchemaDatasetFacet",
+            "fields": [
+              {
+                "name": "settledDate",
+                "type": "string | null"
+              },
+              {
+                "name": "txnId",
+                "type": "string"
+              },
+              {
+                "name": "amount.display",
+                "type": "string"
+              },
+              {
+                "name": "amount.value",
+                "type": "number"
+              },
+              {
+                "name": "statusLabel",
+                "type": "string"
+              },
+              {
+                "name": "postedDate",
+                "type": "string (YYYY-MM-DD)"
+              },
+              {
+                "name": "merchantName",
+                "type": "string"
+              },
+              {
+                "name": "category",
+                "type": "string"
+              },
+              {
+                "name": "cardMasked",
+                "type": "string"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "outputs": [
+      {
+        "namespace": "ui://txn-research-ui",
+        "name": "TxnSearch.FilterBar",
+        "facets": {
+          "schema": {
+            "_producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-2-0/SchemaDatasetFacet.json#/$defs/SchemaDatasetFacet",
+            "fields": [
+              {
+                "name": "Category filter",
+                "type": "Multi-select chips"
+              }
+            ]
+          },
+          "columnLineage": {
+            "_producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-2-0/ColumnLineageDatasetFacet.json#/$defs/ColumnLineageDatasetFacet",
+            "fields": {
+              "Category filter": {
+                "inputFields": [
+                  {
+                    "namespace": "https://txn-research-bff",
+                    "name": "GET /api/v1/transactions/search",
+                    "field": "category",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "TRANSFORMATION",
+                        "description": "Distinct values → filter options",
+                        "masking": false
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "eventType": "COMPLETE",
+    "eventTime": "2026-10-06T00:00:00.000Z",
+    "producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+    "schemaURL": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/$defs/RunEvent",
+    "run": {
+      "runId": "41282e8d-8d39-5c03-a253-d164172e5468"
+    },
+    "job": {
+      "namespace": "txn-research-ui",
+      "name": "TxnDetail.RiskPanel"
+    },
+    "inputs": [
+      {
+        "namespace": "https://txn-research-bff",
+        "name": "GET /api/v1/transactions/{id}",
+        "facets": {
+          "schema": {
+            "_producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-2-0/SchemaDatasetFacet.json#/$defs/SchemaDatasetFacet",
+            "fields": [
+              {
+                "name": "disputeReason",
+                "type": "string"
+              },
+              {
+                "name": "riskBand",
+                "type": "'LOW' | 'MED' | 'HIGH'"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "outputs": [
+      {
+        "namespace": "ui://txn-research-ui",
+        "name": "TxnDetail.RiskPanel",
+        "facets": {
+          "schema": {
+            "_producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-2-0/SchemaDatasetFacet.json#/$defs/SchemaDatasetFacet",
+            "fields": [
+              {
+                "name": "Risk",
+                "type": "Pill · LOW / MED / HIGH"
+              }
+            ]
+          },
+          "columnLineage": {
+            "_producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-2-0/ColumnLineageDatasetFacet.json#/$defs/ColumnLineageDatasetFacet",
+            "fields": {
+              "Risk": {
+                "inputFields": [
+                  {
+                    "namespace": "https://txn-research-bff",
+                    "name": "GET /api/v1/transactions/{id}",
+                    "field": "riskBand",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "TRANSFORMATION",
+                        "description": "Pill tone by band",
+                        "masking": false
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "eventType": "COMPLETE",
+    "eventTime": "2026-10-06T00:00:00.000Z",
+    "producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+    "schemaURL": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/$defs/RunEvent",
+    "run": {
+      "runId": "12d06e93-2f6b-5952-9f08-0ab036d765b4"
+    },
+    "job": {
+      "namespace": "txn-research-ui",
+      "name": "TxnDetail.DisputePanel"
+    },
+    "inputs": [
+      {
+        "namespace": "https://txn-research-bff",
+        "name": "GET /api/v1/transactions/{id}",
+        "facets": {
+          "schema": {
+            "_producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-2-0/SchemaDatasetFacet.json#/$defs/SchemaDatasetFacet",
+            "fields": [
+              {
+                "name": "disputeReason",
+                "type": "string"
+              },
+              {
+                "name": "riskBand",
+                "type": "'LOW' | 'MED' | 'HIGH'"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "outputs": [
+      {
+        "namespace": "ui://txn-research-ui",
+        "name": "TxnDetail.DisputePanel",
+        "facets": {
+          "schema": {
+            "_producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-2-0/SchemaDatasetFacet.json#/$defs/SchemaDatasetFacet",
+            "fields": [
+              {
+                "name": "Dispute reason",
+                "type": "Text"
+              }
+            ]
+          },
+          "columnLineage": {
+            "_producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-2-0/ColumnLineageDatasetFacet.json#/$defs/ColumnLineageDatasetFacet",
+            "fields": {
+              "Dispute reason": {
+                "inputFields": [
+                  {
+                    "namespace": "https://txn-research-bff",
+                    "name": "GET /api/v1/transactions/{id}",
+                    "field": "disputeReason",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "IDENTITY",
+                        "masking": false
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "eventType": "COMPLETE",
+    "eventTime": "2026-10-06T00:00:00.000Z",
+    "producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+    "schemaURL": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/$defs/RunEvent",
+    "run": {
+      "runId": "68b08918-6d59-590b-9e9b-4255a344441b"
+    },
+    "job": {
+      "namespace": "txn-research-bff",
+      "name": "GET /api/v1/transactions/search"
+    },
+    "inputs": [
+      {
+        "namespace": "java://txn-data-service",
+        "name": "TransactionRecord",
+        "facets": {
+          "schema": {
+            "_producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-2-0/SchemaDatasetFacet.json#/$defs/SchemaDatasetFacet",
+            "fields": [
+              {
+                "name": "settledAt",
+                "type": "Instant"
+              },
+              {
+                "name": "disputeReasonCode",
+                "type": "String"
+              },
+              {
+                "name": "transactionId",
+                "type": "String"
+              },
+              {
+                "name": "amount",
+                "type": "BigDecimal"
+              },
+              {
+                "name": "currency",
+                "type": "String"
+              },
+              {
+                "name": "status",
+                "type": "TxnStatus (enum)"
+              },
+              {
+                "name": "postedAt",
+                "type": "Instant"
+              },
+              {
+                "name": "merchantName",
+                "type": "String"
+              },
+              {
+                "name": "merchantCategory",
+                "type": "String"
+              },
+              {
+                "name": "riskScore",
+                "type": "Double"
+              },
+              {
+                "name": "cardLast4",
+                "type": "String"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "outputs": [
+      {
+        "namespace": "https://txn-research-bff",
+        "name": "GET /api/v1/transactions/search",
+        "facets": {
+          "schema": {
+            "_producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-2-0/SchemaDatasetFacet.json#/$defs/SchemaDatasetFacet",
+            "fields": [
+              {
+                "name": "settledDate",
+                "type": "string | null"
+              },
+              {
+                "name": "txnId",
+                "type": "string"
+              },
+              {
+                "name": "amount.display",
+                "type": "string"
+              },
+              {
+                "name": "amount.value",
+                "type": "number"
+              },
+              {
+                "name": "statusLabel",
+                "type": "string"
+              },
+              {
+                "name": "postedDate",
+                "type": "string (YYYY-MM-DD)"
+              },
+              {
+                "name": "merchantName",
+                "type": "string"
+              },
+              {
+                "name": "category",
+                "type": "string"
+              },
+              {
+                "name": "cardMasked",
+                "type": "string"
+              }
+            ]
+          },
+          "columnLineage": {
+            "_producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-2-0/ColumnLineageDatasetFacet.json#/$defs/ColumnLineageDatasetFacet",
+            "fields": {
+              "txnId": {
+                "inputFields": [
+                  {
+                    "namespace": "java://txn-data-service",
+                    "name": "TransactionRecord",
+                    "field": "transactionId",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "IDENTITY",
+                        "masking": false
+                      }
+                    ]
+                  }
+                ]
+              },
+              "amount.display": {
+                "inputFields": [
+                  {
+                    "namespace": "java://txn-data-service",
+                    "name": "TransactionRecord",
+                    "field": "amount",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "TRANSFORMATION",
+                        "description": "Intl.NumberFormat('en-US', { style: 'currency', currency })",
+                        "masking": false
+                      }
+                    ]
+                  },
+                  {
+                    "namespace": "java://txn-data-service",
+                    "name": "TransactionRecord",
+                    "field": "currency",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "TRANSFORMATION",
+                        "description": "Supplies currency code to formatter",
+                        "masking": false
+                      }
+                    ]
+                  }
+                ]
+              },
+              "amount.value": {
+                "inputFields": [
+                  {
+                    "namespace": "java://txn-data-service",
+                    "name": "TransactionRecord",
+                    "field": "amount",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "TRANSFORMATION",
+                        "description": "amount.toNumber()",
+                        "masking": false
+                      }
+                    ]
+                  }
+                ]
+              },
+              "statusLabel": {
+                "inputFields": [
+                  {
+                    "namespace": "java://txn-data-service",
+                    "name": "TransactionRecord",
+                    "field": "status",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "TRANSFORMATION",
+                        "description": "Title-case · POSTED → Posted",
+                        "masking": false
+                      }
+                    ]
+                  }
+                ]
+              },
+              "postedDate": {
+                "inputFields": [
+                  {
+                    "namespace": "java://txn-data-service",
+                    "name": "TransactionRecord",
+                    "field": "postedAt",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "TRANSFORMATION",
+                        "description": "Convert to user TZ · format YYYY-MM-DD",
+                        "masking": false
+                      }
+                    ]
+                  }
+                ]
+              },
+              "merchantName": {
+                "inputFields": [
+                  {
+                    "namespace": "java://txn-data-service",
+                    "name": "TransactionRecord",
+                    "field": "merchantName",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "TRANSFORMATION",
+                        "description": "Trim · truncate at 40 chars",
+                        "masking": false
+                      }
+                    ]
+                  }
+                ]
+              },
+              "category": {
+                "inputFields": [
+                  {
+                    "namespace": "java://txn-data-service",
+                    "name": "TransactionRecord",
+                    "field": "merchantCategory",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "IDENTITY",
+                        "masking": false
+                      }
+                    ]
+                  }
+                ]
+              },
+              "cardMasked": {
+                "inputFields": [
+                  {
+                    "namespace": "java://txn-data-service",
+                    "name": "TransactionRecord",
+                    "field": "cardLast4",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "TRANSFORMATION",
+                        "masking": true,
+                        "description": "'•••• ' + cardLast4"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "settledDate": {
+                "inputFields": [
+                  {
+                    "namespace": "java://txn-data-service",
+                    "name": "TransactionRecord",
+                    "field": "settledAt",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "TRANSFORMATION",
+                        "description": "Format YYYY-MM-DD · null → '—'",
+                        "masking": false
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "eventType": "COMPLETE",
+    "eventTime": "2026-10-06T00:00:00.000Z",
+    "producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+    "schemaURL": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/$defs/RunEvent",
+    "run": {
+      "runId": "8e9088ac-44a0-5fb5-a029-8630ca2af257"
+    },
+    "job": {
+      "namespace": "txn-research-bff",
+      "name": "GET /api/v1/transactions/{id}"
+    },
+    "inputs": [
+      {
+        "namespace": "java://txn-data-service",
+        "name": "TransactionRecord",
+        "facets": {
+          "schema": {
+            "_producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-2-0/SchemaDatasetFacet.json#/$defs/SchemaDatasetFacet",
+            "fields": [
+              {
+                "name": "settledAt",
+                "type": "Instant"
+              },
+              {
+                "name": "disputeReasonCode",
+                "type": "String"
+              },
+              {
+                "name": "transactionId",
+                "type": "String"
+              },
+              {
+                "name": "amount",
+                "type": "BigDecimal"
+              },
+              {
+                "name": "currency",
+                "type": "String"
+              },
+              {
+                "name": "status",
+                "type": "TxnStatus (enum)"
+              },
+              {
+                "name": "postedAt",
+                "type": "Instant"
+              },
+              {
+                "name": "merchantName",
+                "type": "String"
+              },
+              {
+                "name": "merchantCategory",
+                "type": "String"
+              },
+              {
+                "name": "riskScore",
+                "type": "Double"
+              },
+              {
+                "name": "cardLast4",
+                "type": "String"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "outputs": [
+      {
+        "namespace": "https://txn-research-bff",
+        "name": "GET /api/v1/transactions/{id}",
+        "facets": {
+          "schema": {
+            "_producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-2-0/SchemaDatasetFacet.json#/$defs/SchemaDatasetFacet",
+            "fields": [
+              {
+                "name": "disputeReason",
+                "type": "string"
+              },
+              {
+                "name": "riskBand",
+                "type": "'LOW' | 'MED' | 'HIGH'"
+              }
+            ]
+          },
+          "columnLineage": {
+            "_producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-2-0/ColumnLineageDatasetFacet.json#/$defs/ColumnLineageDatasetFacet",
+            "fields": {
+              "riskBand": {
+                "inputFields": [
+                  {
+                    "namespace": "java://txn-data-service",
+                    "name": "TransactionRecord",
+                    "field": "riskScore",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "TRANSFORMATION",
+                        "description": "≥ 70 → HIGH · ≥ 40 → MED · else LOW",
+                        "masking": false
+                      }
+                    ]
+                  }
+                ]
+              },
+              "disputeReason": {
+                "inputFields": [
+                  {
+                    "namespace": "java://txn-data-service",
+                    "name": "TransactionRecord",
+                    "field": "disputeReasonCode",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "TRANSFORMATION",
+                        "description": "Code → label via reason-codes.json",
+                        "masking": false
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "eventType": "COMPLETE",
+    "eventTime": "2026-10-06T00:00:00.000Z",
+    "producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+    "schemaURL": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/$defs/RunEvent",
+    "run": {
+      "runId": "c131f5dd-548d-5ec6-ba59-e78b5ccf1a8d"
+    },
+    "job": {
+      "namespace": "txn-data-service",
+      "name": "TransactionRecord"
+    },
+    "inputs": [
+      {
+        "namespace": "graphql://snowflake-gateway",
+        "name": "Transaction",
+        "facets": {
+          "schema": {
+            "_producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-2-0/SchemaDatasetFacet.json#/$defs/SchemaDatasetFacet",
+            "fields": [
+              {
+                "name": "settledAt",
+                "type": "DateTime"
+              },
+              {
+                "name": "disputeReason",
+                "type": "String"
+              },
+              {
+                "name": "id",
+                "type": "ID!"
+              },
+              {
+                "name": "status",
+                "type": "TransactionStatus!"
+              },
+              {
+                "name": "postedAt",
+                "type": "DateTime!"
+              },
+              {
+                "name": "riskScore",
+                "type": "Float"
+              },
+              {
+                "name": "cardLast4",
+                "type": "String"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "namespace": "graphql://snowflake-gateway",
+        "name": "Money",
+        "facets": {
+          "schema": {
+            "_producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-2-0/SchemaDatasetFacet.json#/$defs/SchemaDatasetFacet",
+            "fields": [
+              {
+                "name": "value",
+                "type": "Float!"
+              },
+              {
+                "name": "currency",
+                "type": "String!"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "namespace": "graphql://snowflake-gateway",
+        "name": "Merchant",
+        "facets": {
+          "schema": {
+            "_producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-2-0/SchemaDatasetFacet.json#/$defs/SchemaDatasetFacet",
+            "fields": [
+              {
+                "name": "name",
+                "type": "String"
+              },
+              {
+                "name": "category",
+                "type": "String"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "outputs": [
+      {
+        "namespace": "java://txn-data-service",
+        "name": "TransactionRecord",
+        "facets": {
+          "schema": {
+            "_producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-2-0/SchemaDatasetFacet.json#/$defs/SchemaDatasetFacet",
+            "fields": [
+              {
+                "name": "settledAt",
+                "type": "Instant"
+              },
+              {
+                "name": "disputeReasonCode",
+                "type": "String"
+              },
+              {
+                "name": "transactionId",
+                "type": "String"
+              },
+              {
+                "name": "amount",
+                "type": "BigDecimal"
+              },
+              {
+                "name": "currency",
+                "type": "String"
+              },
+              {
+                "name": "status",
+                "type": "TxnStatus (enum)"
+              },
+              {
+                "name": "postedAt",
+                "type": "Instant"
+              },
+              {
+                "name": "merchantName",
+                "type": "String"
+              },
+              {
+                "name": "merchantCategory",
+                "type": "String"
+              },
+              {
+                "name": "riskScore",
+                "type": "Double"
+              },
+              {
+                "name": "cardLast4",
+                "type": "String"
+              }
+            ]
+          },
+          "columnLineage": {
+            "_producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-2-0/ColumnLineageDatasetFacet.json#/$defs/ColumnLineageDatasetFacet",
+            "fields": {
+              "transactionId": {
+                "inputFields": [
+                  {
+                    "namespace": "graphql://snowflake-gateway",
+                    "name": "Transaction",
+                    "field": "id",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "IDENTITY",
+                        "masking": false
+                      }
+                    ]
+                  }
+                ]
+              },
+              "amount": {
+                "inputFields": [
+                  {
+                    "namespace": "graphql://snowflake-gateway",
+                    "name": "Money",
+                    "field": "value",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "TRANSFORMATION",
+                        "description": "BigDecimal.valueOf(v).setScale(2, HALF_EVEN)",
+                        "masking": false
+                      }
+                    ]
+                  }
+                ]
+              },
+              "currency": {
+                "inputFields": [
+                  {
+                    "namespace": "graphql://snowflake-gateway",
+                    "name": "Money",
+                    "field": "currency",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "IDENTITY",
+                        "masking": false
+                      }
+                    ]
+                  }
+                ]
+              },
+              "status": {
+                "inputFields": [
+                  {
+                    "namespace": "graphql://snowflake-gateway",
+                    "name": "Transaction",
+                    "field": "status",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "TRANSFORMATION",
+                        "description": "TxnStatus.valueOf(name)",
+                        "masking": false
+                      }
+                    ]
+                  }
+                ]
+              },
+              "postedAt": {
+                "inputFields": [
+                  {
+                    "namespace": "graphql://snowflake-gateway",
+                    "name": "Transaction",
+                    "field": "postedAt",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "TRANSFORMATION",
+                        "description": "Instant.parse(postedAt)",
+                        "masking": false
+                      }
+                    ]
+                  }
+                ]
+              },
+              "merchantName": {
+                "inputFields": [
+                  {
+                    "namespace": "graphql://snowflake-gateway",
+                    "name": "Merchant",
+                    "field": "name",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "TRANSFORMATION",
+                        "description": "null → 'Unknown merchant'",
+                        "masking": false
+                      }
+                    ]
+                  }
+                ]
+              },
+              "merchantCategory": {
+                "inputFields": [
+                  {
+                    "namespace": "graphql://snowflake-gateway",
+                    "name": "Merchant",
+                    "field": "category",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "IDENTITY",
+                        "masking": false
+                      }
+                    ]
+                  }
+                ]
+              },
+              "riskScore": {
+                "inputFields": [
+                  {
+                    "namespace": "graphql://snowflake-gateway",
+                    "name": "Transaction",
+                    "field": "riskScore",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "IDENTITY",
+                        "description": "null → 0.0",
+                        "masking": false
+                      }
+                    ]
+                  }
+                ]
+              },
+              "cardLast4": {
+                "inputFields": [
+                  {
+                    "namespace": "graphql://snowflake-gateway",
+                    "name": "Transaction",
+                    "field": "cardLast4",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "IDENTITY",
+                        "masking": false
+                      }
+                    ]
+                  }
+                ]
+              },
+              "settledAt": {
+                "inputFields": [
+                  {
+                    "namespace": "graphql://snowflake-gateway",
+                    "name": "Transaction",
+                    "field": "settledAt",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "TRANSFORMATION",
+                        "description": "Instant.parse(settledAt)",
+                        "masking": false
+                      }
+                    ]
+                  }
+                ]
+              },
+              "disputeReasonCode": {
+                "inputFields": [
+                  {
+                    "namespace": "graphql://snowflake-gateway",
+                    "name": "Transaction",
+                    "field": "disputeReason",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "IDENTITY",
+                        "masking": false
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "eventType": "COMPLETE",
+    "eventTime": "2026-10-06T00:00:00.000Z",
+    "producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+    "schemaURL": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/$defs/RunEvent",
+    "run": {
+      "runId": "5ff2090f-f516-59af-94f4-ff2becb2fd42"
+    },
+    "job": {
+      "namespace": "snowflake-graphql-gateway",
+      "name": "Transaction"
+    },
+    "inputs": [
+      {
+        "namespace": "snowflake://ACME-TXN_PROD",
+        "name": "TXN_DB.CORE.FACT_TRANSACTION",
+        "facets": {
+          "schema": {
+            "_producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-2-0/SchemaDatasetFacet.json#/$defs/SchemaDatasetFacet",
+            "fields": [
+              {
+                "name": "TXN_ID",
+                "type": "VARCHAR(36)"
+              },
+              {
+                "name": "TXN_AMT_MINOR",
+                "type": "NUMBER(18,0)"
+              },
+              {
+                "name": "CCY_CD",
+                "type": "CHAR(3)"
+              },
+              {
+                "name": "TXN_STATUS_CD",
+                "type": "VARCHAR(2)"
+              },
+              {
+                "name": "POSTED_TS",
+                "type": "TIMESTAMP_NTZ"
+              },
+              {
+                "name": "MERCHANT_ID",
+                "type": "VARCHAR(20)"
+              },
+              {
+                "name": "CARD_PAN_LAST4",
+                "type": "CHAR(4)"
+              },
+              {
+                "name": "SETTLEMENT_DT",
+                "type": "DATE"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "namespace": "snowflake://ACME-TXN_PROD",
+        "name": "TXN_DB.RISK.TXN_RISK_SCORE",
+        "facets": {
+          "schema": {
+            "_producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-2-0/SchemaDatasetFacet.json#/$defs/SchemaDatasetFacet",
+            "fields": [
+              {
+                "name": "RISK_SCORE",
+                "type": "NUMBER(5,2)"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "outputs": [
+      {
+        "namespace": "graphql://snowflake-gateway",
+        "name": "Transaction",
+        "facets": {
+          "schema": {
+            "_producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-2-0/SchemaDatasetFacet.json#/$defs/SchemaDatasetFacet",
+            "fields": [
+              {
+                "name": "settledAt",
+                "type": "DateTime"
+              },
+              {
+                "name": "disputeReason",
+                "type": "String"
+              },
+              {
+                "name": "id",
+                "type": "ID!"
+              },
+              {
+                "name": "status",
+                "type": "TransactionStatus!"
+              },
+              {
+                "name": "postedAt",
+                "type": "DateTime!"
+              },
+              {
+                "name": "riskScore",
+                "type": "Float"
+              },
+              {
+                "name": "cardLast4",
+                "type": "String"
+              }
+            ]
+          },
+          "columnLineage": {
+            "_producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-2-0/ColumnLineageDatasetFacet.json#/$defs/ColumnLineageDatasetFacet",
+            "fields": {
+              "id": {
+                "inputFields": [
+                  {
+                    "namespace": "snowflake://ACME-TXN_PROD",
+                    "name": "TXN_DB.CORE.FACT_TRANSACTION",
+                    "field": "TXN_ID",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "IDENTITY",
+                        "description": "resolver Transaction.id",
+                        "masking": false
+                      }
+                    ]
+                  }
+                ]
+              },
+              "status": {
+                "inputFields": [
+                  {
+                    "namespace": "snowflake://ACME-TXN_PROD",
+                    "name": "TXN_DB.CORE.FACT_TRANSACTION",
+                    "field": "TXN_STATUS_CD",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "TRANSFORMATION",
+                        "description": "DECODE: PS→POSTED · PD→PENDING · RV→REVERSED · DC→DECLINED",
+                        "masking": false
+                      }
+                    ]
+                  }
+                ]
+              },
+              "postedAt": {
+                "inputFields": [
+                  {
+                    "namespace": "snowflake://ACME-TXN_PROD",
+                    "name": "TXN_DB.CORE.FACT_TRANSACTION",
+                    "field": "POSTED_TS",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "TRANSFORMATION",
+                        "description": "CONVERT_TIMEZONE('UTC', POSTED_TS) → ISO-8601",
+                        "masking": false
+                      }
+                    ]
+                  }
+                ]
+              },
+              "riskScore": {
+                "inputFields": [
+                  {
+                    "namespace": "snowflake://ACME-TXN_PROD",
+                    "name": "TXN_DB.RISK.TXN_RISK_SCORE",
+                    "field": "RISK_SCORE",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "TRANSFORMATION",
+                        "description": "Latest per TXN_ID · QUALIFY ROW_NUMBER() OVER (PARTITION BY TXN_ID ORDER BY SCORED_AT DESC) = 1",
+                        "masking": false
+                      }
+                    ]
+                  }
+                ]
+              },
+              "cardLast4": {
+                "inputFields": [
+                  {
+                    "namespace": "snowflake://ACME-TXN_PROD",
+                    "name": "TXN_DB.CORE.FACT_TRANSACTION",
+                    "field": "CARD_PAN_LAST4",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "IDENTITY",
+                        "masking": false
+                      }
+                    ]
+                  }
+                ]
+              },
+              "settledAt": {
+                "inputFields": [
+                  {
+                    "namespace": "snowflake://ACME-TXN_PROD",
+                    "name": "TXN_DB.CORE.FACT_TRANSACTION",
+                    "field": "SETTLE_DT",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "IDENTITY",
+                        "description": "SELECT SETTLE_DT",
+                        "masking": false
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          },
+          "datalineage_notes": {
+            "_producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+            "_schemaURL": "https://raw.githubusercontent.com/srsubramanian/DataLineage/main/schemas/LineageNotesDatasetFacet.json#/$defs/LineageNotesDatasetFacet",
+            "fields": {
+              "settledAt": {
+                "note": "Column renamed to SETTLEMENT_DT on 2026-09-14 — resolver still selects SETTLE_DT and returns null"
+              },
+              "disputeReason": {
+                "note": "Resolver stub returns null — no Snowflake column is mapped to Transaction.disputeReason"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "eventType": "COMPLETE",
+    "eventTime": "2026-10-06T00:00:00.000Z",
+    "producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+    "schemaURL": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/$defs/RunEvent",
+    "run": {
+      "runId": "d95efe88-af0b-59b5-a0a8-bc9d7b478787"
+    },
+    "job": {
+      "namespace": "snowflake-graphql-gateway",
+      "name": "Money"
+    },
+    "inputs": [
+      {
+        "namespace": "snowflake://ACME-TXN_PROD",
+        "name": "TXN_DB.CORE.FACT_TRANSACTION",
+        "facets": {
+          "schema": {
+            "_producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-2-0/SchemaDatasetFacet.json#/$defs/SchemaDatasetFacet",
+            "fields": [
+              {
+                "name": "TXN_ID",
+                "type": "VARCHAR(36)"
+              },
+              {
+                "name": "TXN_AMT_MINOR",
+                "type": "NUMBER(18,0)"
+              },
+              {
+                "name": "CCY_CD",
+                "type": "CHAR(3)"
+              },
+              {
+                "name": "TXN_STATUS_CD",
+                "type": "VARCHAR(2)"
+              },
+              {
+                "name": "POSTED_TS",
+                "type": "TIMESTAMP_NTZ"
+              },
+              {
+                "name": "MERCHANT_ID",
+                "type": "VARCHAR(20)"
+              },
+              {
+                "name": "CARD_PAN_LAST4",
+                "type": "CHAR(4)"
+              },
+              {
+                "name": "SETTLEMENT_DT",
+                "type": "DATE"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "namespace": "snowflake://ACME-TXN_PROD",
+        "name": "TXN_DB.REF.CURRENCY",
+        "facets": {
+          "schema": {
+            "_producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-2-0/SchemaDatasetFacet.json#/$defs/SchemaDatasetFacet",
+            "fields": [
+              {
+                "name": "MINOR_UNITS",
+                "type": "NUMBER(1,0)"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "outputs": [
+      {
+        "namespace": "graphql://snowflake-gateway",
+        "name": "Money",
+        "facets": {
+          "schema": {
+            "_producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-2-0/SchemaDatasetFacet.json#/$defs/SchemaDatasetFacet",
+            "fields": [
+              {
+                "name": "value",
+                "type": "Float!"
+              },
+              {
+                "name": "currency",
+                "type": "String!"
+              }
+            ]
+          },
+          "columnLineage": {
+            "_producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-2-0/ColumnLineageDatasetFacet.json#/$defs/ColumnLineageDatasetFacet",
+            "fields": {
+              "value": {
+                "inputFields": [
+                  {
+                    "namespace": "snowflake://ACME-TXN_PROD",
+                    "name": "TXN_DB.CORE.FACT_TRANSACTION",
+                    "field": "TXN_AMT_MINOR",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "TRANSFORMATION",
+                        "description": "TXN_AMT_MINOR / POWER(10, MINOR_UNITS)",
+                        "masking": false
+                      }
+                    ]
+                  },
+                  {
+                    "namespace": "snowflake://ACME-TXN_PROD",
+                    "name": "TXN_DB.REF.CURRENCY",
+                    "field": "MINOR_UNITS",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "TRANSFORMATION",
+                        "description": "JOIN REF.CURRENCY USING (CCY_CD) → scale factor",
+                        "masking": false
+                      }
+                    ]
+                  }
+                ]
+              },
+              "currency": {
+                "inputFields": [
+                  {
+                    "namespace": "snowflake://ACME-TXN_PROD",
+                    "name": "TXN_DB.CORE.FACT_TRANSACTION",
+                    "field": "CCY_CD",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "IDENTITY",
+                        "masking": false
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "eventType": "COMPLETE",
+    "eventTime": "2026-10-06T00:00:00.000Z",
+    "producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+    "schemaURL": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/$defs/RunEvent",
+    "run": {
+      "runId": "3f2503cb-e7e2-5db2-907e-ba4252550dab"
+    },
+    "job": {
+      "namespace": "snowflake-graphql-gateway",
+      "name": "Merchant"
+    },
+    "inputs": [
+      {
+        "namespace": "snowflake://ACME-TXN_PROD",
+        "name": "TXN_DB.CORE.FACT_TRANSACTION",
+        "facets": {
+          "schema": {
+            "_producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-2-0/SchemaDatasetFacet.json#/$defs/SchemaDatasetFacet",
+            "fields": [
+              {
+                "name": "TXN_ID",
+                "type": "VARCHAR(36)"
+              },
+              {
+                "name": "TXN_AMT_MINOR",
+                "type": "NUMBER(18,0)"
+              },
+              {
+                "name": "CCY_CD",
+                "type": "CHAR(3)"
+              },
+              {
+                "name": "TXN_STATUS_CD",
+                "type": "VARCHAR(2)"
+              },
+              {
+                "name": "POSTED_TS",
+                "type": "TIMESTAMP_NTZ"
+              },
+              {
+                "name": "MERCHANT_ID",
+                "type": "VARCHAR(20)"
+              },
+              {
+                "name": "CARD_PAN_LAST4",
+                "type": "CHAR(4)"
+              },
+              {
+                "name": "SETTLEMENT_DT",
+                "type": "DATE"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "namespace": "snowflake://ACME-TXN_PROD",
+        "name": "TXN_DB.CORE.DIM_MERCHANT",
+        "facets": {
+          "schema": {
+            "_producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-2-0/SchemaDatasetFacet.json#/$defs/SchemaDatasetFacet",
+            "fields": [
+              {
+                "name": "MERCHANT_NM",
+                "type": "VARCHAR(140)"
+              },
+              {
+                "name": "MCC_CD",
+                "type": "CHAR(4)"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "namespace": "snowflake://ACME-TXN_PROD",
+        "name": "TXN_DB.REF.MCC_CODE",
+        "facets": {
+          "schema": {
+            "_producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-2-0/SchemaDatasetFacet.json#/$defs/SchemaDatasetFacet",
+            "fields": [
+              {
+                "name": "MCC_DESC",
+                "type": "VARCHAR(80)"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "outputs": [
+      {
+        "namespace": "graphql://snowflake-gateway",
+        "name": "Merchant",
+        "facets": {
+          "schema": {
+            "_producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-2-0/SchemaDatasetFacet.json#/$defs/SchemaDatasetFacet",
+            "fields": [
+              {
+                "name": "name",
+                "type": "String"
+              },
+              {
+                "name": "category",
+                "type": "String"
+              }
+            ]
+          },
+          "columnLineage": {
+            "_producer": "https://github.com/srsubramanian/DataLineage/tree/main/src/fixtures",
+            "_schemaURL": "https://openlineage.io/spec/facets/1-2-0/ColumnLineageDatasetFacet.json#/$defs/ColumnLineageDatasetFacet",
+            "fields": {
+              "name": {
+                "inputFields": [
+                  {
+                    "namespace": "snowflake://ACME-TXN_PROD",
+                    "name": "TXN_DB.CORE.FACT_TRANSACTION",
+                    "field": "MERCHANT_ID",
+                    "transformations": [
+                      {
+                        "type": "INDIRECT",
+                        "subtype": "JOIN",
+                        "description": "JOIN CORE.DIM_MERCHANT USING (MERCHANT_ID)",
+                        "masking": false
+                      }
+                    ]
+                  },
+                  {
+                    "namespace": "snowflake://ACME-TXN_PROD",
+                    "name": "TXN_DB.CORE.DIM_MERCHANT",
+                    "field": "MERCHANT_NM",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "IDENTITY",
+                        "description": "NULL passthrough",
+                        "masking": false
+                      }
+                    ]
+                  }
+                ]
+              },
+              "category": {
+                "inputFields": [
+                  {
+                    "namespace": "snowflake://ACME-TXN_PROD",
+                    "name": "TXN_DB.CORE.DIM_MERCHANT",
+                    "field": "MCC_CD",
+                    "transformations": [
+                      {
+                        "type": "INDIRECT",
+                        "subtype": "JOIN",
+                        "description": "JOIN REF.MCC_CODE USING (MCC_CD)",
+                        "masking": false
+                      }
+                    ]
+                  },
+                  {
+                    "namespace": "snowflake://ACME-TXN_PROD",
+                    "name": "TXN_DB.REF.MCC_CODE",
+                    "field": "MCC_DESC",
+                    "transformations": [
+                      {
+                        "type": "DIRECT",
+                        "subtype": "TRANSFORMATION",
+                        "description": "INITCAP(MCC_DESC)",
+                        "masking": false
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    ]
+  }
+]

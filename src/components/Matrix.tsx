@@ -1,5 +1,5 @@
 import type { KeyboardEvent } from 'react';
-import { edgeKey, isDirect, nameMatches, type Analysis, type LineageGraph } from '../lib/lineage';
+import { describeEdge, edgeKey, isIdentity, nameMatches, transformationKinds, type Analysis, type LineageGraph } from '../lib/lineage';
 import { layerVars } from '../lib/palette';
 import type { DisplaySettings } from '../lib/settings';
 import type { LineageNode } from '../lib/types';
@@ -106,9 +106,11 @@ function Connector({ graph, analysis, layerIndex, showMark }: { graph: LineageGr
   const es = analysis.edges.filter((e) => graph.node(e.to).layer === layer);
   const gap = layerIndex >= analysis.deepest;
   const broken = es.some((e) => e.broken);
-  const transformed = es.some((e) => !isDirect(e));
+  const transformed = es.some((e) => !isIdentity(e));
   const kind = gap ? 'gap' : broken ? 'broken' : transformed ? 'transform' : 'direct';
-  const title = gap ? 'No upstream mapping' : es.map((e) => (e.broken ? `BROKEN: ${e.broken}` : e.logic)).join('\n');
+  const title = gap
+    ? 'No upstream mapping'
+    : es.map((e) => (e.broken ? `BROKEN: ${e.broken}` : `${transformationKinds(e)}: ${describeEdge(e)}`)).join('\n');
   const mark = broken ? '!' : transformed ? 'ƒ' : '=';
 
   return (

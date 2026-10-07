@@ -1,4 +1,4 @@
-import { edgeKey, isDirect, type Analysis, type LineageGraph } from '../lib/lineage';
+import { describeEdge, edgeKey, hasDescription, isIdentity, isMasking, transformationKinds, type Analysis, type LineageGraph } from '../lib/lineage';
 import { layerVars } from '../lib/palette';
 import type { DisplaySettings } from '../lib/settings';
 import type { LineageNode } from '../lib/types';
@@ -15,7 +15,7 @@ interface Props {
 }
 
 export function DetailPanel({ graph, field, analysis: a, impactNode, impact, settings, onSelectRow, onClearNode }: Props) {
-  const transforms = a.edges.filter((e) => !isDirect(e)).length;
+  const transforms = a.edges.filter((e) => !isIdentity(e)).length;
   const sources = [...a.ids].filter((id) => graph.indexOf(id) === graph.lastLayerIndex).length;
   const end = a.endNode ? graph.node(a.endNode) : null;
 
@@ -47,6 +47,7 @@ export function DetailPanel({ graph, field, analysis: a, impactNode, impact, set
                 {graph.node(e.from).name}
               </span>
               <span className="issue-card-detail">{e.broken}</span>
+              {graph.notes[e.to] && <span className="issue-card-detail">{graph.notes[e.to]}</span>}
             </div>
           ))}
           {end && (
@@ -55,7 +56,7 @@ export function DetailPanel({ graph, field, analysis: a, impactNode, impact, set
               <span className="mono issue-card-where">
                 Chain ends at {graph.layerOf(end.id).label} · {end.name}
               </span>
-              <span className="issue-card-detail">{graph.gaps[end.id] ?? 'No upstream mapping found'}</span>
+              <span className="issue-card-detail">{graph.notes[end.id] ?? 'No upstream mapping found'}</span>
             </div>
           )}
         </div>
@@ -111,9 +112,15 @@ export function DetailPanel({ graph, field, analysis: a, impactNode, impact, set
                       {'  ←  '}
                       {graph.node(e.from).name}
                     </span>
-                    <code className={`trail-code mono is-${e.broken ? 'broken' : isDirect(e) ? 'direct' : 'transform'}`}>
-                      {e.broken ? `${e.logic}  ✕  ${e.broken}` : e.logic}
-                    </code>
+                    <span className="trail-map-kinds">
+                      <span className="mono">{transformationKinds(e)}</span>
+                      {isMasking(e) && <span className="trail-map-masked">Masked</span>}
+                    </span>
+                    {(e.broken || hasDescription(e)) && (
+                      <code className={`trail-code mono is-${e.broken ? 'broken' : isIdentity(e) ? 'direct' : 'transform'}`}>
+                        {e.broken ? `${describeEdge(e)}  ✕  ${e.broken}` : describeEdge(e)}
+                      </code>
+                    )}
                   </div>
                 ))}
               </div>

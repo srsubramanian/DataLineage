@@ -12,7 +12,7 @@ import { useUrlState, type Coverage } from './lib/useUrlState';
 const BAD = 'oklch(0.55 0.15 25)';
 
 interface AppProps {
-  /** Supply data directly (tests, embedding); otherwise it is loaded via `loadLineage`. */
+  /** Supply the graph directly (tests, embedding); otherwise it is loaded via `loadLineage`. */
   data?: LineageData;
   settings?: Partial<DisplaySettings>;
 }

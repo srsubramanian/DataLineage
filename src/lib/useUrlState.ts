@@ -4,7 +4,7 @@ export type Coverage = 'all' | 'ok' | 'issues';
 
 export interface ViewState {
   q: string;
-  /** Selected UI node id. */
+  /** Selected UI node id; empty = first field. */
   row: string;
   /** Impact node id (non-UI). */
   node: string | null;
@@ -12,7 +12,7 @@ export interface ViewState {
   cov: Coverage;
 }
 
-export const DEFAULT_VIEW: ViewState = { q: '', row: 'u2', node: null, screen: 'All', cov: 'all' };
+export const DEFAULT_VIEW: ViewState = { q: '', row: '', node: null, screen: 'All', cov: 'all' };
 
 const COVERAGES: Coverage[] = ['all', 'ok', 'issues'];
 
