@@ -1,0 +1,516 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>QBR Query Walkthrough</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: story on the left, the growing query pinned on the right; one step on screen at a time. */
+:root{
+  --bg:#f2f5f7; --surface:#ffffff; --ink:#14212b; --muted:#566773; --line:#d3dce3;
+  --accent:#0a6c6c; --accent-ink:#ffffff; --new:#fff0bf; --mark:#a86400;
+  --str:#9a3d6b; --fn:#3b55b5; --ok:#1f7a3d; --bad:#b3261e;
+  --display:"Bricolage Grotesque","IBM Plex Sans",system-ui,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0e161c; --surface:#162129; --ink:#e3ebf0; --muted:#94a5b1; --line:#2a3943;
+  --accent:#52c4be; --accent-ink:#06211f; --new:#3b3210; --mark:#f0b84a;
+  --str:#f09bc0; --fn:#9db2ff; --ok:#6fd08c; --bad:#ff8a80; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#0e161c; --surface:#162129; --ink:#e3ebf0; --muted:#94a5b1; --line:#2a3943;
+  --accent:#52c4be; --accent-ink:#06211f; --new:#3b3210; --mark:#f0b84a;
+  --str:#f09bc0; --fn:#9db2ff; --ok:#6fd08c; --bad:#ff8a80; color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:20px;padding-block:28px 48px;display:flex;flex-direction:column;gap:22px}
+header h1{font-family:var(--display);font-size:clamp(1.7rem,4vw,2.5rem);line-height:1.1;margin:0 0 8px;text-wrap:balance}
+header p{margin:0;color:var(--muted);max-width:62ch}
+.tag{display:inline-block;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--mark);font-weight:600;margin-bottom:10px}
+
+.steps{display:flex;flex-wrap:wrap;gap:8px;list-style:none;margin:0;padding:0}
+.steps button{font:500 .85rem var(--body);color:var(--muted);background:transparent;border:1px solid var(--line);border-radius:999px;padding:6px 12px;cursor:pointer}
+.steps button .n{font-family:var(--mono);margin-right:6px}
+.steps button.done{color:var(--ink);border-color:var(--accent)}
+.steps button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button:focus-visible{outline:2px solid var(--mark);outline-offset:2px}
+
+.stage{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:24px;align-items:start}
+.story{min-width:0;display:flex;flex-direction:column;gap:18px}
+.count{font:500 .8rem var(--mono);color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.story h2{font-family:var(--display);font-size:1.6rem;line-height:1.15;margin:0;text-wrap:balance}
+.story p{margin:0;max-width:60ch}
+.changes{margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:6px;max-width:60ch}
+.changes li::marker{color:var(--mark)}
+code{font-family:var(--mono);font-size:.88em}
+.label{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:8px}
+
+.flow{display:flex;flex-direction:column;gap:8px}
+.lane{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.node{font:500 .78rem var(--mono);padding:5px 9px;border-radius:6px;border:1px dashed var(--line);color:var(--muted)}
+.node.built{border-style:solid;border-color:var(--accent);color:var(--ink);background:var(--surface)}
+.node.fresh{background:var(--new);border-color:var(--mark)}
+.arrow{color:var(--muted);font-family:var(--mono)}
+
+.tablebox{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.84rem;font-variant-numeric:tabular-nums}
+th,td{padding:7px 12px;text-align:left;white-space:nowrap;border-bottom:1px solid var(--line)}
+th{font:500 .76rem var(--mono);color:var(--muted)}
+tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right}
+td.hot,th.hot{background:var(--new)}
+.note{font-size:.84rem;color:var(--muted);margin:0}
+
+.nav{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.btn{font:600 .92rem var(--body);padding:9px 18px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn:disabled{opacity:.45;cursor:default}
+.hint{font-size:.8rem;color:var(--muted)}
+
+.sql{min-width:0;position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.sqlbar{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--line)}
+.sqlbar span{font:500 .8rem var(--mono);color:var(--muted)}
+.sqlbar .btn{padding:5px 12px;font-size:.8rem}
+.code{overflow:auto;max-height:min(72vh,720px);padding:10px 0;font:400 .82rem/1.65 var(--mono)}
+.ln{display:flex;min-width:max-content;padding-right:16px;border-left:3px solid transparent}
+.ln i{flex:none;width:3.2em;text-align:right;padding-right:1em;color:var(--muted);font-style:normal;opacity:.7;user-select:none}
+.ln b{font-weight:400;white-space:pre}
+.ln.new{background:var(--new);border-left-color:var(--mark)}
+.kw{color:var(--accent);font-weight:500}.fn{color:var(--fn)}.st{color:var(--str)}.cm{color:var(--muted);font-style:italic}
+.legend{padding:9px 14px;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted);display:flex;align-items:center;gap:8px}
+.sw{width:14px;height:14px;background:var(--new);border-left:3px solid var(--mark);flex:none}
+
+.modes{display:flex;gap:8px;flex-wrap:wrap}
+.view{display:flex;flex-direction:column;gap:22px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:14px}
+.panel h2{font-family:var(--display);font-size:1.25rem;margin:0}
+.panel p{margin:0;color:var(--muted);font-size:.9rem;max-width:70ch}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+label.f{display:flex;flex-direction:column;gap:4px;font:500 .76rem var(--mono);color:var(--muted);min-width:0}
+label.f input,label.f select{font:400 .92rem var(--body);padding:7px 9px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);width:100%;min-width:0}
+label.f input:focus-visible,label.f select:focus-visible{outline:2px solid var(--mark);outline-offset:1px}
+.verdict{padding:12px 14px;border-left:4px solid var(--mark);background:var(--surface);border-radius:6px;margin:0;max-width:none}
+.verdict.ok{border-left-color:var(--ok)} .verdict.bad{border-left-color:var(--bad)}
+.cp{background:var(--surface);border:1px solid var(--line);border-radius:10px;min-width:0}
+.cphead{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:12px 14px}
+.cphead h3{font-family:var(--display);font-size:1.1rem;margin:0}
+.cphead .n{font:500 .9rem var(--mono);color:var(--accent);margin-right:10px}
+.pill{font:500 .74rem var(--mono);padding:3px 10px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.pill.ok{color:var(--ok);border-color:var(--ok)} .pill.bad{color:var(--bad);border-color:var(--bad)}
+.cpbody{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:16px;padding:0 14px 14px}
+.qwrap,.side{min-width:0;display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+pre.q{margin:0;align-self:stretch;overflow:auto;max-height:240px;font:400 .78rem/1.6 var(--mono);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.btn.sm{padding:5px 12px;font-size:.8rem}
+.side .fields{align-self:stretch;grid-template-columns:repeat(auto-fit,minmax(120px,1fr))}
+.msg{font-size:.88rem;margin:0}
+.msg.ok{color:var(--ok)} .msg.bad{color:var(--bad)}
+
+@media (max-width:860px){ .stage,.cpbody{grid-template-columns:minmax(0,1fr)} .sql{position:static} .code{max-height:none} }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="tag">Sample walkthrough &middot; illustrative tables and numbers</span>
+    <h1>How the merchant QBR query is built</h1>
+    <p>The full query looks long, but it is seven small ideas stacked on top of each other. Step through them and watch the SQL grow one piece at a time. Every step is a query you can run on its own.</p>
+  </header>
+
+  <div class="modes">
+    <button class="btn primary" id="m-learn" type="button" aria-pressed="true">Learn the query</button>
+    <button class="btn" id="m-recon" type="button" aria-pressed="false">Reconcile a number</button>
+  </div>
+
+  <div class="view" id="learn">
+  <ol class="steps" id="steps"></ol>
+
+  <div class="stage">
+    <section class="story">
+      <div id="narr" style="display:flex;flex-direction:column;gap:14px">
+        <div class="count" id="count"></div>
+        <h2 id="title"></h2>
+        <p id="para"></p>
+        <ul class="changes" id="changes"></ul>
+      </div>
+
+      <div>
+        <div class="label">What exists so far</div>
+        <div class="flow" id="flow"></div>
+      </div>
+
+      <div>
+        <div class="label" id="outlabel">What this step returns</div>
+        <div class="tablebox"><table id="out"></table></div>
+      </div>
+      <p class="note" id="note"></p>
+
+      <div class="nav">
+        <button class="btn" id="back" type="button">Back</button>
+        <button class="btn primary" id="next" type="button">Next step</button>
+        <span class="hint">or use the &larr; &rarr; keys</span>
+      </div>
+    </section>
+
+    <aside class="sql">
+      <div class="sqlbar"><span id="sqlname">qbr_metrics.sql</span><button class="btn" id="copy" type="button">Copy this step</button></div>
+      <div class="code" id="code"></div>
+      <div class="legend"><span class="sw"></span><span>Added in this step</span></div>
+    </aside>
+  </div>
+  </div>
+
+  <div class="view" id="recon" hidden>
+    <section class="panel">
+      <h2>The number in question</h2>
+      <p>Say which figure is disputed and narrow the scope to it. Each checkpoint below gives you a small query. Copy it, run it in Snowflake, and paste the totals back.</p>
+      <div class="fields">
+        <label class="f">metric<select id="c-metric"><option value="approval">Approval rate</option><option value="chargeback">Chargeback rate</option></select></label>
+        <label class="f">reported_pct<input id="c-reported" inputmode="decimal" autocomplete="off" placeholder="88.0"></label>
+        <label class="f">expected_pct<input id="c-expected" inputmode="decimal" autocomplete="off" placeholder="89.2"></label>
+        <label class="f">quarter_start<input id="f-qtr" type="date" value="2026-07-01"></label>
+        <label class="f">card_brand<select id="f-brand"><option value="">All brands</option><option>Visa</option><option>Mastercard</option></select></label>
+        <label class="f">channel<select id="f-chan"><option value="">All channels</option><option value="CP">CP</option><option value="CNP">CNP</option></select></label>
+      </div>
+      <p>Changing the quarter, brand or channel rewrites every query and clears the pasted totals.</p>
+    </section>
+    <p class="verdict" id="verdict" role="status"></p>
+    <div class="view" id="cps" style="gap:14px"></div>
+    <div class="nav"><button class="btn" id="clear" type="button">Clear pasted totals</button><span class="hint">Tip: paste a whole result row into the first box and it fills the rest.</span></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/motion@11.11.13/dist/motion.js"></script>
+<script>
+// Each SQL line: [text, firstStep, removedAtStep, quiet]. quiet = appears without being flagged as new.
+const L = [
+["SELECT merchant_id, auth_id, auth_ts, amount, response_code",0,1],
+["FROM payments.authorizations",0,1],
+["WHERE merchant_id = :merchant_id",0,1],
+["WITH auths AS (",1],
+["  SELECT",1],
+["    merchant_id,",1,,1],
+["    DATE_TRUNC('quarter', auth_ts) AS qtr,",1],
+["    card_brand,",3],
+["    channel,                 -- 'CP' or 'CNP'",3],
+["    amount,",1,,1],
+["    response_code",1,,1],
+["  FROM payments.authorizations",1,,1],
+["  WHERE merchant_id = :merchant_id",1,,1],
+["    AND auth_ts >= DATEADD('quarter', -2, DATE_TRUNC('quarter', CURRENT_DATE))",1],
+["    AND auth_ts <  DATE_TRUNC('quarter', CURRENT_DATE)",1],
+[")",1,2],
+["),",2,,1],
+["SELECT * FROM auths",1,2],
+["auth_metrics AS (",2],
+["  SELECT",2],
+["    merchant_id,",2],
+["    qtr,",2],
+["    card_brand,",3],
+["    channel,",3],
+["    COUNT(*) AS attempts,",2],
+["    COUNT_IF(response_code = '00') AS approvals,",2],
+["    SUM(IFF(response_code = '00', amount, 0)) AS approved_volume,",2],
+["    approvals / NULLIF(attempts, 0) AS approval_rate",2],
+["  FROM auths",2],
+["  GROUP BY merchant_id, qtr",2,3],
+["  GROUP BY merchant_id, qtr, card_brand, channel",3],
+[")",2,4],
+["),",4,,1],
+["SELECT * FROM auth_metrics",2,4],
+["disputes AS (",4],
+["  SELECT",4],
+["    s.merchant_id,",4],
+["    DATE_TRUNC('quarter', s.settled_ts) AS qtr,",4],
+["    s.card_brand,",4],
+["    s.channel,",4],
+["    COUNT(DISTINCT s.txn_id) AS settled_txns,",4],
+["    COUNT(DISTINCT c.chargeback_id) AS chargebacks,",4],
+["    chargebacks / NULLIF(settled_txns, 0) AS chargeback_rate",4],
+["  FROM payments.settlements s",4],
+["  LEFT JOIN payments.chargebacks c",4],
+["    ON c.txn_id = s.txn_id",4],
+["  WHERE s.merchant_id = :merchant_id",4],
+["    AND s.settled_ts >= DATEADD('quarter', -2, DATE_TRUNC('quarter', CURRENT_DATE))",4],
+["    AND s.settled_ts <  DATE_TRUNC('quarter', CURRENT_DATE)",4],
+["  GROUP BY 1, 2, 3, 4",4],
+[")",4],
+["SELECT * FROM disputes",4,5],
+["SELECT",5],
+["  a.qtr,",5],
+["  a.card_brand,",5],
+["  a.channel,",5],
+["  a.attempts,",5],
+["  a.approval_rate,",5],
+["  a.approval_rate - LAG(a.approval_rate) OVER (",6],
+["    PARTITION BY a.card_brand, a.channel ORDER BY a.qtr",6],
+["  ) AS approval_rate_qoq,",6],
+["  d.chargeback_rate",5],
+["FROM auth_metrics a",5],
+["LEFT JOIN disputes d",5],
+["  ON  d.merchant_id = a.merchant_id",5],
+["  AND d.qtr         = a.qtr",5],
+["  AND d.card_brand  = a.card_brand",5],
+["  AND d.channel     = a.channel",5],
+["ORDER BY a.qtr, a.card_brand, a.channel",6]
+];
+
+const NODES = [
+  [["authorizations",0],["auths",1],["auth_metrics",2]],
+  [["settlements + chargebacks",4],["disputes",4]],
+  [["QBR result",5]]
+];
+
+const S = [
+{ name:"Raw rows", title:"Start with one table",
+  p:"Every card swipe or checkout click lands as one row in the authorizations table. Before any maths, look at the raw rows for a single merchant.",
+  c:["<code>:merchant_id</code> is a bind variable, so the same query serves every merchant's QBR.","Response code <code>00</code> means approved. Anything else is a decline."],
+  cols:["merchant_id","auth_id","auth_ts","amount","response_code"],
+  rows:[["M-1042","A-90817","2026-04-03 09:14","48.20","00"],["M-1042","A-90818","2026-04-03 09:15","212.00","05"],["M-1042","A-90819","2026-07-19 17:02","19.99","00"],["M-1042","A-90820","2026-08-02 11:40","75.50","51"]],
+  note:"One row per authorization attempt." },
+{ name:"Quarters", title:"Give every row a quarter",
+  p:"A QBR compares quarters, so each row needs to know which quarter it belongs to. We also keep only the last two complete quarters, and give this cleaned-up set a name, auths, so later steps can reuse it.",
+  c:["<code>DATE_TRUNC('quarter', …)</code> snaps each timestamp to the first day of its quarter.","The two date filters keep the last two finished quarters and leave out the one in progress.","<code>WITH auths AS (…)</code> names the result. Nothing else about the rows changed."],
+  cols:["merchant_id","qtr","amount","response_code"], hot:[1],
+  rows:[["M-1042","2026-04-01","48.20","00"],["M-1042","2026-04-01","212.00","05"],["M-1042","2026-07-01","19.99","00"],["M-1042","2026-07-01","75.50","51"]],
+  note:"Same rows as before, now labelled Q2 or Q3." },
+{ name:"Approval rate", title:"Count attempts and approvals",
+  p:"Now collapse the rows. For each quarter, count every attempt and count the approved ones. Approval rate is simply approvals divided by attempts.",
+  c:["<code>COUNT_IF</code> counts only the rows where the condition is true.","<code>NULLIF(attempts, 0)</code> protects against dividing by zero.","This is a second named block, auth_metrics, that reads from auths."],
+  cols:["qtr","attempts","approvals","approved_volume","approval_rate"], hot:[4],
+  rows:[["2026-Q2","412,880","371,592","$18,204,310","90.0%"],["2026-Q3","438,115","400,875","$19,877,402","91.5%"]],
+  note:"Millions of rows became one row per quarter." },
+{ name:"Brand & channel", title:"Split by card brand and channel",
+  p:"One number per quarter hides the interesting part. Card-not-present traffic usually approves lower than card-present, and brands behave differently. Adding two columns to the grouping exposes that.",
+  c:["<code>card_brand</code> and <code>channel</code> are carried through auths, then added to the <code>GROUP BY</code>.","The maths did not change. Only the level of detail did."],
+  cols:["qtr","card_brand","channel","attempts","approvals","approval_rate"], hot:[1,2],
+  rows:[["2026-Q3","Visa","CP","150,000","144,000","96.0%"],["2026-Q3","Visa","CNP","110,000","96,800","88.0%"],["2026-Q3","Mastercard","CP","98,115","93,700","95.5%"],["2026-Q3","Mastercard","CNP","80,000","66,375","83.0%"]],
+  note:"Showing Q3 only. These four rows add up to the Q3 row from the previous step." },
+{ name:"Chargebacks", title:"Bring in chargebacks",
+  p:"Chargebacks live in a different table and are measured against settled transactions, not authorization attempts. So we build a third block, disputes, shaped exactly like auth_metrics: one row per quarter, brand and channel.",
+  c:["<code>LEFT JOIN</code> keeps every settled transaction, including the ones with no chargeback.","<code>COUNT(DISTINCT …)</code> avoids double counting when one transaction has more than one chargeback record.","Chargeback rate is chargebacks divided by settled transactions."],
+  cols:["qtr","card_brand","channel","settled_txns","chargebacks","chargeback_rate"], hot:[5],
+  rows:[["2026-Q3","Visa","CP","142,900","43","0.03%"],["2026-Q3","Visa","CNP","95,600","612","0.64%"],["2026-Q3","Mastercard","CP","93,100","37","0.04%"],["2026-Q3","Mastercard","CNP","65,400","589","0.90%"]],
+  note:"This sample counts a chargeback in the quarter its sale settled. Confirm that against how your real query dates them." },
+{ name:"Join", title:"Put the two halves side by side",
+  p:"Both blocks now have the same grain, so they line up row for row. Join them on merchant, quarter, brand and channel, and pick the columns the QBR needs.",
+  c:["The four <code>ON</code> conditions are the four columns both blocks were grouped by.","<code>LEFT JOIN</code> keeps a segment even if it had no settled sales yet."],
+  cols:["qtr","card_brand","channel","attempts","approval_rate","chargeback_rate"], hot:[4,5],
+  rows:[["2026-Q3","Visa","CP","150,000","96.0%","0.03%"],["2026-Q3","Visa","CNP","110,000","88.0%","0.64%"],["2026-Q3","Mastercard","CP","98,115","95.5%","0.04%"],["2026-Q3","Mastercard","CNP","80,000","83.0%","0.90%"]],
+  note:"Showing Q3 only. One row per segment, both headline metrics together." },
+{ name:"Quarter over quarter", title:"Compare with the previous quarter",
+  p:"The last piece is the trend. For each brand and channel, look back one quarter and subtract. That difference is the headline of the QBR slide.",
+  c:["<code>LAG(…)</code> fetches the value from the previous row.","<code>PARTITION BY</code> makes sure Visa CNP is only compared with Visa CNP.","<code>ORDER BY</code> puts the output in reading order. The query is complete."],
+  cols:["qtr","card_brand","channel","attempts","approval_rate","approval_rate_qoq","chargeback_rate"], hot:[5],
+  rows:[["2026-Q3","Visa","CP","150,000","96.0%","+0.4 pt","0.03%"],["2026-Q3","Visa","CNP","110,000","88.0%","+2.1 pt","0.64%"],["2026-Q3","Mastercard","CP","98,115","95.5%","+0.6 pt","0.04%"],["2026-Q3","Mastercard","CNP","80,000","83.0%","+3.2 pt","0.90%"]],
+  note:"Showing Q3 only. The Q2 rows have no earlier quarter to compare with, so their change is empty." }
+];
+
+const M = window.Motion || {};
+const calm = matchMedia("(prefers-reduced-motion: reduce)").matches || !M.animate;
+const $ = id => document.getElementById(id);
+const esc = s => s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const RX = /(--.*$)|('[^']*')|\b(SELECT|FROM|WHERE|WITH|AS|AND|ON|LEFT|JOIN|GROUP|BY|ORDER|OVER|PARTITION|DISTINCT)\b|\b(DATE_TRUNC|DATEADD|COUNT_IF|COUNT|SUM|IFF|NULLIF|LAG|CURRENT_DATE)\b/g;
+function paint(t){
+  let out="", i=0, m; RX.lastIndex=0;
+  while((m=RX.exec(t))){
+    out+=esc(t.slice(i,m.index));
+    const cls=m[1]?"cm":m[2]?"st":m[3]?"kw":"fn";
+    out+='<span class="'+cls+'">'+esc(m[0])+'</span>'; i=m.index+m[0].length;
+  }
+  return out+esc(t.slice(i));
+}
+const linesAt = s => L.filter(([t,f,u]) => f<=s && (u===undefined || s<u));
+let cur = 0, shown = -1;
+
+function render(s){
+  const fwd = s > shown, st = S[s];
+  cur = s;
+  // step chips
+  $("steps").innerHTML = S.map((x,i)=>'<li><button type="button" data-i="'+i+'" class="'+(i===s?"on":i<s?"done":"")+'"'+(i===s?' aria-current="step"':'')+'><span class="n">'+(i+1)+'</span>'+x.name+'</button></li>').join("");
+  // narrative
+  $("count").textContent = "Step "+(s+1)+" of "+S.length;
+  $("title").textContent = st.title;
+  $("para").textContent = st.p;
+  $("changes").innerHTML = st.c.map(c=>"<li>"+c+"</li>").join("");
+  // flow
+  $("flow").innerHTML = NODES.map((lane,li)=>'<div class="lane">'+(li===2?'<span class="arrow">joined &rarr;</span>':'')+lane.map(([n,f],i)=>(i?'<span class="arrow">&rarr;</span>':'')+'<span class="node'+(f<=s?" built":"")+(f===s?" fresh":"")+'">'+n+'</span>').join("")+'</div>').join("");
+  // output table
+  const hot = st.hot||[], num = c => /^[+\-$\d]/.test(c) && !/^\d{4}-/.test(c) ;
+  $("out").innerHTML = "<thead><tr>"+st.cols.map((c,i)=>'<th class="'+(num(st.rows[0][i])?"num ":"")+(hot.includes(i)?"hot":"")+'">'+c+"</th>").join("")+"</tr></thead><tbody>"+
+    st.rows.map(r=>"<tr>"+r.map((c,i)=>'<td class="'+(num(c)?"num ":"")+(hot.includes(i)?"hot":"")+'">'+c+"</td>").join("")+"</tr>").join("")+"</tbody>";
+  $("note").textContent = st.note;
+  // sql
+  $("code").innerHTML = linesAt(s).map(([t,f,u,q],i)=>'<div class="ln'+(f===s&&!q&&s>0?" new":"")+'"><i>'+(i+1)+'</i><b>'+paint(t)+'</b></div>').join("");
+  $("sqlname").textContent = "qbr_metrics.sql · step "+(s+1);
+  $("back").disabled = s===0;
+  $("next").disabled = s===S.length-1;
+  $("next").textContent = s===S.length-1 ? "Query complete" : "Next step";
+  $("copy").textContent = "Copy this step";
+
+  const code = $("code"), fresh = code.querySelectorAll(".ln.new");
+  if (fresh.length) code.scrollTop = Math.max(0, fresh[0].offsetTop - code.offsetTop - 60); else code.scrollTop = 0;
+
+  if (!calm && shown !== -1){
+    const d = fwd ? 1 : -1;
+    M.animate($("narr"), {opacity:[0,1], y:[10*d,0]}, {duration:.35});
+    M.animate("#out tbody tr", {opacity:[0,1], y:[6,0]}, {duration:.3, delay:M.stagger(.05,{startDelay:.15})});
+    const fn = document.querySelectorAll(".node.fresh");
+    if (fn.length) M.animate(fn, {scale:[.85,1.06,1], opacity:[0,1,1]}, {duration:.5, delay:M.stagger(.12)});
+    if (fresh.length) M.animate(fresh, {opacity:[0,1], x:[-16,0]}, {duration:.35, delay:M.stagger(.045,{startDelay:.1})});
+  }
+  shown = s;
+}
+
+const go = s => { if (s>=0 && s<S.length && s!==cur) render(s); };
+$("steps").addEventListener("click", e => { const b=e.target.closest("button"); if (b) go(+b.dataset.i); });
+$("back").addEventListener("click", () => go(cur-1));
+$("next").addEventListener("click", () => go(cur+1));
+document.addEventListener("keydown", e => {
+  if (e.metaKey||e.ctrlKey||e.altKey || mode!=="learn" || /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return;
+  if (e.key==="ArrowRight") go(cur+1); else if (e.key==="ArrowLeft") go(cur-1);
+});
+$("copy").addEventListener("click", () => {
+  const text = linesAt(cur).map(l=>l[0]).join("\n"), b = $("copy");
+  const fallback = () => { const r=document.createRange(); r.selectNodeContents($("code")); const sel=getSelection(); sel.removeAllRanges(); sel.addRange(r); b.textContent="Selected, press copy"; };
+  try { navigator.clipboard.writeText(text).then(()=>{ b.textContent="Copied"; }, fallback); } catch(_) { fallback(); }
+});
+render(0);
+
+/* ---------- Reconcile mode: copy a check query, run it elsewhere, paste the totals back ---------- */
+let mode = "learn";
+const text = s => linesAt(s).map(l=>l[0]);
+const cteAt = s => { const t=text(s); return t.slice(0, t.findIndex(x=>/^SELECT/.test(x))); };
+const AUTHS = (()=>{ const t=cteAt(3); return t.slice(0, t.indexOf("),")).concat(")"); })();
+const JOIN = (()=>{ const t=text(6); return t.slice(t.indexOf("FROM auth_metrics a"), t.length-1); })();
+const RANGE = L.filter(l=>/AND auth_ts/.test(l[0])).map(l=>l[0].replace(/^ {4}/,"  "));
+function conds(p, raw){
+  const c=[], q=$("f-qtr").value, b=$("f-brand").value, ch=$("f-chan").value;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(q)) c.push(raw ? "DATE_TRUNC('quarter', auth_ts) = '"+q+"'" : p+"qtr = '"+q+"'");
+  if (b) c.push(p+"card_brand = '"+b+"'");
+  if (ch) c.push(p+"channel = '"+ch+"'");
+  return c;
+}
+const W = (p, inline) => { const c=conds(p); return c.length ? (inline?" WHERE ":"\nWHERE ")+c.join(inline?" AND ":"\n  AND ") : ""; };
+
+const CP = [
+{ id:"raw", title:"Raw authorizations", fields:["row_count","distinct_auths"],
+  why:"Counts the source rows before any of our logic touches them. The two numbers should be the same.",
+  sql:()=>["SELECT","  COUNT(*) AS row_count,","  COUNT(DISTINCT auth_id) AS distinct_auths","FROM payments.authorizations","WHERE merchant_id = :merchant_id"].concat(RANGE, conds("",true).map(c=>"  AND "+c)).join("\n") },
+{ id:"auths", title:"After the quarter filter", fields:["row_count"],
+  why:"Counts the rows that survive into auths. It should equal the raw row count from checkpoint 1.",
+  sql:()=>AUTHS.join("\n")+"\nSELECT COUNT(*) AS row_count\nFROM auths"+W("") },
+{ id:"metrics", title:"Attempts and approvals", fields:["attempts","approvals"],
+  why:"Adds up the grouped block. Attempts should equal the auths row count, and approvals divided by attempts is the approval rate.",
+  sql:()=>cteAt(3).join("\n")+"\nSELECT\n  SUM(attempts) AS attempts,\n  SUM(approvals) AS approvals\nFROM auth_metrics"+W("") },
+{ id:"disputes", title:"Settled sales and chargebacks", fields:["settled_txns","chargebacks"],
+  why:"Adds up the chargeback block. Chargebacks divided by settled transactions is the chargeback rate.",
+  sql:()=>cteAt(6).join("\n")+"\nSELECT\n  SUM(settled_txns) AS settled_txns,\n  SUM(chargebacks) AS chargebacks\nFROM disputes"+W("") },
+{ id:"join", title:"Join fan-out", fields:["segments_before","rows_after_join"],
+  why:"Checks that joining the two blocks does not multiply rows. Both numbers should be the same.",
+  sql:()=>cteAt(6).join("\n")+"\nSELECT\n  (SELECT COUNT(*) FROM auth_metrics a"+W("a.",true)+") AS segments_before,\n  COUNT(*) AS rows_after_join\n"+JOIN.join("\n")+W("a.") }
+];
+
+const toNum = v => { const s=String(v).replace(/[, %$]/g,""); const n=parseFloat(s); return s!=="" && isFinite(n) ? n : NaN; };
+const fmt = n => Math.abs(n).toLocaleString("en-US");
+const KEY = "qbr-reconcile-draft";
+const reconInputs = () => document.querySelectorAll("#recon input, #recon select");
+function save(){ try { const o={}; reconInputs().forEach(e=>o[e.id]=e.value); localStorage.setItem(KEY, JSON.stringify(o)); } catch(_){} }
+function load(){ try { const o=JSON.parse(localStorage.getItem(KEY)||"{}"); reconInputs().forEach(e=>{ if (o[e.id]!==undefined) e.value=o[e.id]; }); } catch(_){} }
+
+function buildRecon(){
+  $("cps").innerHTML = CP.map((c,i)=>
+    '<article class="cp"><div class="cphead"><h3><span class="n">'+(i+1)+'</span>'+c.title+'</h3><span class="pill" id="pill-'+c.id+'">Waiting</span></div>'+
+    '<div class="cpbody"><div class="qwrap"><pre class="q" id="q-'+c.id+'"></pre><button class="btn sm" type="button" data-copy="'+c.id+'">Copy query</button></div>'+
+    '<div class="side"><p class="msg">'+c.why+'</p><div class="fields">'+
+    c.fields.map(f=>'<label class="f">'+f+'<input id="v-'+c.id+'-'+f+'" data-cp="'+c.id+'" inputmode="decimal" autocomplete="off"></label>').join("")+
+    '</div><p class="msg" id="m-'+c.id+'" role="status"></p></div></div></article>').join("");
+}
+function fillSql(){ CP.forEach(c=>{ $("q-"+c.id).innerHTML = c.sql().split("\n").map(paint).join("\n"); }); }
+
+const last = {};
+function judge(){
+  const g=(c,f)=>toNum($("v-"+c+"-"+f).value), R={}, set=(id,state,msg)=>{ R[id]={state,msg}; };
+  const a=g("raw","row_count"), b=g("raw","distinct_auths");
+  if (isNaN(a)||isNaN(b)) set("raw","wait","");
+  else if (a===b) set("raw","ok","No duplicate authorizations in the source.");
+  else set("raw","bad",fmt(a-b)+" more rows than distinct authorizations. Duplicates in the source inflate attempts.");
+
+  const ar=g("auths","row_count");
+  if (isNaN(ar)) set("auths","wait","");
+  else if (isNaN(a)) set("auths","wait","Fill in checkpoint 1 to compare.");
+  else if (ar===a) set("auths","ok","Every source row made it through the quarter filter.");
+  else set("auths","bad",fmt(a-ar)+" rows differ between the source and auths. Check the quarter boundaries and the time zone of auth_ts.");
+
+  const at=g("metrics","attempts"), ap=g("metrics","approvals"); let rateA=NaN;
+  if (isNaN(at)||isNaN(ap)) set("metrics","wait","");
+  else if (at<=0) set("metrics","bad","No attempts in this scope. Check the scope above.");
+  else if (ap>at) set("metrics","bad","Approvals cannot be higher than attempts. Check the pasted values.");
+  else if (!isNaN(ar) && at!==ar) set("metrics","bad","Attempts should equal the auths row count. "+fmt(at-ar)+" rows were gained or lost in the grouping.");
+  else { rateA=ap/at*100; set("metrics","ok","Approval rate from these totals: "+rateA.toFixed(2)+"%."); }
+
+  const st=g("disputes","settled_txns"), cb=g("disputes","chargebacks"); let rateC=NaN;
+  if (isNaN(st)||isNaN(cb)) set("disputes","wait","");
+  else if (st<=0) set("disputes","bad","No settled transactions in this scope. Check the scope above.");
+  else if (cb>st) set("disputes","bad","Chargebacks cannot be higher than settled transactions. Check the pasted values.");
+  else { rateC=cb/st*100; set("disputes","ok","Chargeback rate from these totals: "+rateC.toFixed(3)+"%."); }
+
+  const sb=g("join","segments_before"), rj=g("join","rows_after_join");
+  if (isNaN(sb)||isNaN(rj)) set("join","wait","");
+  else if (sb===rj) set("join","ok","The join keeps exactly one row per segment.");
+  else set("join","bad","The join changes the row count by "+fmt(rj-sb)+". disputes has more than one row for some segment, so values are being repeated.");
+
+  CP.forEach(c=>{
+    const r=R[c.id], pill=$("pill-"+c.id), m=$("m-"+c.id);
+    pill.className="pill"+(r.state==="wait"?"":" "+r.state);
+    pill.textContent = r.state==="ok"?"Adds up":r.state==="bad"?"Mismatch":"Waiting";
+    m.className="msg"+(r.state==="wait"?"":" "+r.state); m.textContent=r.msg;
+    if (!calm && last[c.id]!==undefined && last[c.id]!==r.state && r.state!=="wait") M.animate(pill,{scale:[.8,1.15,1]},{duration:.4});
+    last[c.id]=r.state;
+  });
+
+  const appr=$("c-metric").value==="approval", comp=appr?rateA:rateC, d=appr?2:3, tol=appr?0.05:0.005;
+  const rep=toNum($("c-reported").value), exp=toNum($("c-expected").value);
+  const firstBad=CP.findIndex(c=>R[c.id].state==="bad");
+  let cls="", msg;
+  if (firstBad>=0){ cls="bad"; msg="The numbers first part ways at checkpoint "+(firstBad+1)+" ("+CP[firstBad].title.toLowerCase()+"). Start there."; }
+  else if (isNaN(comp)) msg="Run each query in Snowflake and paste its totals back. This line will point to the first checkpoint that does not add up.";
+  else {
+    const c=comp.toFixed(d)+"%", mr=!isNaN(rep)&&Math.abs(comp-rep)<=tol, me=!isNaN(exp)&&Math.abs(comp-exp)<=tol;
+    if (isNaN(rep)&&isNaN(exp)) msg="Your totals give "+c+". Enter the reported and expected values above to compare.";
+    else if (mr&&me){ cls="ok"; msg="Your totals give "+c+", which matches both values within rounding."; }
+    else if (mr){ cls="ok"; msg="Your totals give "+c+", which reproduces the reported value. The calculation holds for this scope, so the expected value is probably using a different definition or a different scope."; }
+    else if (me){ cls="bad"; msg="Your totals give "+c+", which matches the expected value and not the report. Check how the report filtered or rounded this number."; }
+    else { cls="bad"; msg="Your totals give "+c+", which matches neither value. Check that the scope above is the one the report used."; }
+  }
+  $("verdict").className="verdict"+(cls?" "+cls:""); $("verdict").textContent=msg;
+}
+
+function copyText(t, btn, node){
+  const fallback=()=>{ const r=document.createRange(); r.selectNodeContents(node); const s=getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent="Selected, press copy"; };
+  try { navigator.clipboard.writeText(t).then(()=>{ btn.textContent="Copied"; setTimeout(()=>{ btn.textContent="Copy query"; },1500); }, fallback); } catch(_) { fallback(); }
+}
+function clearTotals(){ document.querySelectorAll("#cps input").forEach(e=>e.value=""); }
+function setMode(m){
+  mode=m; $("learn").hidden=m!=="learn"; $("recon").hidden=m!=="recon";
+  [["m-learn","learn"],["m-recon","recon"]].forEach(([id,k])=>{ $(id).classList.toggle("primary",k===m); $(id).setAttribute("aria-pressed",k===m); });
+  if (!calm) M.animate($(m), {opacity:[0,1], y:[8,0]}, {duration:.3});
+}
+
+buildRecon(); load(); fillSql(); judge();
+$("m-learn").addEventListener("click", ()=>setMode("learn"));
+$("m-recon").addEventListener("click", ()=>setMode("recon"));
+$("recon").addEventListener("input", ()=>{ judge(); save(); });
+["f-qtr","f-brand","f-chan"].forEach(id=>$(id).addEventListener("change", ()=>{ clearTotals(); fillSql(); judge(); save(); }));
+$("clear").addEventListener("click", ()=>{ clearTotals(); judge(); save(); });
+$("cps").addEventListener("click", e=>{ const b=e.target.closest("[data-copy]"); if (b){ const c=CP.find(x=>x.id===b.dataset.copy); copyText(c.sql(), b, $("q-"+c.id)); } });
+$("cps").addEventListener("paste", e=>{
+  const el=e.target; if (!el.dataset || !el.dataset.cp) return;
+  const parts=(e.clipboardData.getData("text")||"").trim().split(/[\t\n\r ]+/).filter(Boolean);
+  if (parts.length<2) return;
+  e.preventDefault();
+  const boxes=[...document.querySelectorAll('#cps input[data-cp="'+el.dataset.cp+'"]')], from=boxes.indexOf(el);
+  parts.forEach((p,i)=>{ if (boxes[from+i]) boxes[from+i].value=p.replace(/,/g,""); });
+  judge(); save();
+});
+if (location.hash==="#reconcile") setMode("recon");
+</script>
+
+</body></html>
